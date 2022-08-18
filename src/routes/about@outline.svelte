@@ -1,25 +1,26 @@
 <script context="module" lang="ts">
-    const mdComponents = Object.entries(import.meta.glob(
-        "$lib/md/about/*.svx",
-        {eager: true}) as Record<string, { default: object, metadata: {chunks: any}}>);
-    // const id = "about";
+	const mdComponents = Object.entries(
+		import.meta.glob('$lib/md/about/*.svx', { eager: true }) as Record<
+			string,
+			{ default: object; metadata: { chunks: any } }
+		>
+	);
+	// const id = "about";
 </script>
 
 <script>
-    import { createEventDispatcher } from 'svelte';
-    import { onMount } from "svelte";
+	import { createEventDispatcher } from 'svelte';
+	import { onMount } from 'svelte';
 
-    const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher();
 
-    onMount(() => {
-        dispatch(
-            'message', {
-                text: "Ready"
-            }
-        );
-    });
+	onMount(() => {
+		dispatch('message', {
+			text: 'Ready'
+		});
+	});
 </script>
 
 {#each mdComponents as section}
-    <svelte:component this={section[1].default}/>
+	<svelte:component this={section[1].default} />
 {/each}

@@ -13,13 +13,13 @@ type Section = {
 	title: string;
 	target: string;
 	children: Section[];
-}
+};
 
 type FileTreeElement = {
 	title: string;
-	kind: "folder" | "file" | "";
+	kind: 'folder' | 'file' | '';
 	children: FileTreeElement[];
 	comment?: string;
-}
+};
 
-declare module "*.svx"
+declare module '*.svx';

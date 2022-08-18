@@ -1,23 +1,23 @@
 // import type {ILanguageRegistration} from "shiki";
 
-const vada ={
-    id: "vada",
-    scopeName: "source.vada",
+const vada = {
+	id: 'vada',
+	scopeName: 'source.vada',
 	grammar: {
 		name: 'vada',
 		scopeName: 'source.vada',
 		fileTypes: ['vada'],
 		patterns: [
-			{ include: '#comments'},
+			{ include: '#comments' },
 			{ include: '#punctuation' },
 			{ include: '#idents' },
 			{ include: '#literals' },
 			{ include: '#operators' }
 		],
 		repository: {
-            // These two are required by vscode-textmate for some reason
-            $self: {},
-            $base: {},
+			// These two are required by vscode-textmate for some reason
+			$self: {},
+			$base: {},
 
 			comments: {
 				patterns: [
@@ -83,8 +83,7 @@ const vada ={
 						// transforms
 						name: 'keyword.operator.special',
 						match: '#[a-zA-Z]+\\w*'
-					},
-
+					}
 				]
 			},
 			punctuation: {
@@ -139,14 +138,14 @@ const vada ={
 						match: '\\.(?!\\.)'
 					},
 					{
-					   //   pipes
-					  "name": "keyword.operator.math",
-					  "match": "->|~>"
+						//   pipes
+						name: 'keyword.operator.math',
+						match: '->|~>'
 					}
 				]
 			}
 		}
-	},
-}
+	}
+};
 
-export {vada};
+export { vada };

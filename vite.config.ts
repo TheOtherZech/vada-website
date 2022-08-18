@@ -1,14 +1,12 @@
 // @ts-check
-import { defineConfig } from "vite";
+import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-    plugins: [
-        sveltekit(),       
-    ],
-    server: {
-        fs: {
-            allow:[".."]
-        }
-    }
+	plugins: [sveltekit()],
+	server: {
+		fs: {
+			allow: ['..']
+		}
+	}
 });

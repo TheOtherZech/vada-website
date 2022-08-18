@@ -1,6 +1,7 @@
 # It's a Website. For Vada.
 
 TL;DR:
+
 - Sveltekit
 - mdsvex
 - shiki

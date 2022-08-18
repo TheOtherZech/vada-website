@@ -1,13 +1,12 @@
 <script>
-    import TabBlock from "$lib/TabBlock.svelte";
-    import highlighter from "$lib/util/highlighter";
-    import { onMount  } from 'svelte';
-    import "$lib/style/tour.css";    
+	import TabBlock from '$lib/TabBlock.svelte';
+	import highlighter from '$lib/util/highlighter';
+	import { onMount } from 'svelte';
+	import '$lib/style/tour.css';
 
-    // setCDN('https://unpkg.com/shiki/');
+	// setCDN('https://unpkg.com/shiki/');
 
-    const test_string = 
-`
+	const test_string = `
 someStruct: {
     name: "jim"
     age: 21
@@ -50,51 +49,48 @@ someRecord: {
     fieldD: true
     fieldE: "jimmy"
 }
-`
-const string2 =
-`
+`;
+	const string2 = `
 someString: "Number2"
 `;
 
-const string3 =
-`
+	const string3 = `
 someString: "Number3"
 `;
-    let ready = false;
-    let block = "";
-    let block2 = "";
-    let block3 = "";
-    onMount (async () => {
-        ready = false;
-        block = await highlighter(test_string, 'vada', null);
-        block2 = await highlighter(string2, 'vada', null);
-        block3 = await highlighter(string3, 'vada', null);
-        ready = true;
-    });
-
+	let ready = false;
+	let block = '';
+	let block2 = '';
+	let block3 = '';
+	onMount(async () => {
+		ready = false;
+		block = await highlighter(test_string, 'vada', null);
+		block2 = await highlighter(string2, 'vada', null);
+		block3 = await highlighter(string3, 'vada', null);
+		ready = true;
+	});
 </script>
 
 <div style="padding: 16px;">
-    <h1>This is Shiki Test</h1>
-    <div>
-        {#if ready}
-        <TabBlock tabs={ [ 
-            {title: "first", slug: "slug"},
-            {title: "second", slug: "jim"},
-            {title: "third", slug: "frank"}, ] }>
-            <div class="block0">
-                {@html block}
-            </div>
-            <div class="block1">
-                {@html block2}
-            </div>
-            <div class="block2">
-                {@html block3}
-            </div>
-
-        </TabBlock>
-        {/if}
-    </div>
-
+	<h1>This is Shiki Test</h1>
+	<div>
+		{#if ready}
+			<TabBlock
+				tabs={[
+					{ title: 'first', slug: 'slug' },
+					{ title: 'second', slug: 'jim' },
+					{ title: 'third', slug: 'frank' }
+				]}
+			>
+				<div class="block0">
+					{@html block}
+				</div>
+				<div class="block1">
+					{@html block2}
+				</div>
+				<div class="block2">
+					{@html block3}
+				</div>
+			</TabBlock>
+		{/if}
+	</div>
 </div>
-

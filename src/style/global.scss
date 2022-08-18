@@ -5,467 +5,456 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300&display=swap');
 
 :root {
-    color-scheme: dark;
-    scrollbar-width: thin;
+	color-scheme: dark;
+	scrollbar-width: thin;
 }
 
 html {
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    text-rendering: geometricPrecision;
-    font-family: 'inter', sans-serif;
-    font-weight: 300;
-    color: $text-primary;
-    background-color: $bg;
-    margin: 0px;
-    line-height: 1.5;
+	scroll-behavior: smooth;
+	scrollbar-width: thin;
+	text-rendering: geometricPrecision;
+	font-family: 'inter', sans-serif;
+	font-weight: 300;
+	color: $text-primary;
+	background-color: $bg;
+	margin: 0px;
+	line-height: 1.5;
 }
 
 body {
-    position: relative;
-    box-sizing: border-box;
-    height:auto;
-    min-height: calc(100vh - 24px);
-    margin: 0px;
+	position: relative;
+	box-sizing: border-box;
+	height: auto;
+	min-height: calc(100vh - 24px);
+	margin: 0px;
 }
 
 #svelte {
-    box-sizing: border-box;
-    position:relative;
-    overflow: hidden;
-    height: inherit;
-    min-height: inherit;
-    padding: 1px;
+	box-sizing: border-box;
+	position: relative;
+	overflow: hidden;
+	height: inherit;
+	min-height: inherit;
+	padding: 1px;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    margin: 0px;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Inter', sans-serif;
+	font-weight: 600;
+	margin: 0px;
 }
 
 button {
-    color: $text-primary;
-    background-color: $wine-dark;
-    border: none;
+	color: $text-primary;
+	background-color: $wine-dark;
+	border: none;
 }
 
 button.solid {
-    cursor: pointer;
-    background-color: $wine-highlight;
-    // outline: $wine-outline 1px solid;
-    transition: box-shadow 100ms, border-radius 400ms;
-    box-shadow: 0px 0px 8px 1px #00000066, 0px 0px 2px 0px #FFFFFF30 inset ;
-    border-radius: 32px;
+	cursor: pointer;
+	background-color: $wine-highlight;
+	// outline: $wine-outline 1px solid;
+	transition: box-shadow 100ms, border-radius 400ms;
+	box-shadow: 0px 0px 8px 1px #00000066, 0px 0px 2px 0px #ffffff30 inset;
+	border-radius: 32px;
 
-    outline-offset: -1px;
+	outline-offset: -1px;
 }
 
 button.solid:active {
-    background-color: $wine-highlight;
-    box-shadow: 0px 0px 4px 0px #000000CC inset;
-    border-radius: 32px;
+	background-color: $wine-highlight;
+	box-shadow: 0px 0px 4px 0px #000000cc inset;
+	border-radius: 32px;
 }
 
 code {
-    font-family: 'Fira Code';
-    padding: 8px 0px;
-    /* border-radius: 4px; */
+	font-family: 'Fira Code';
+	padding: 8px 0px;
+	/* border-radius: 4px; */
 }
 
 code span {
-    padding: 0px;
+	padding: 0px;
 }
 
 sup {
-    vertical-align: super;
-    font-size: 60%;
+	vertical-align: super;
+	font-size: 60%;
 }
 
 .dark {
-    background-color: $card-dark;
-    outline: $card-dark-outline;
-    outline-offset: -1px;
-    color: $text-primary;
-    box-shadow: 0px 0px 8px 0px #00000044;
+	background-color: $card-dark;
+	outline: $card-dark-outline;
+	outline-offset: -1px;
+	color: $text-primary;
+	box-shadow: 0px 0px 8px 0px #00000044;
 }
 
 .two-col {
-    display: flex;
-    justify-content: center;
-    .article {
-        max-width: 800px;
-    }
-    .outline {
-        padding-left: 8px;
-    }
+	display: flex;
+	justify-content: center;
+	.article {
+		max-width: 800px;
+	}
+	.outline {
+		padding-left: 8px;
+	}
 }
 
 // ================= General Text Styling
 
 strong {
-    font-weight: 600;
+	font-weight: 600;
 }
 
 em {
-    font-style: italic;
+	font-style: italic;
 }
-
 
 // ================= Right Column Content
 .article {
-    flex-grow: 2;
-    margin: 0px;
-    flex-grow: 0;
-    overflow: hidden;
+	flex-grow: 2;
+	margin: 0px;
+	flex-grow: 0;
+	overflow: hidden;
 
-    outline: 1px solid $wine-outline;
-    outline-offset: -1px;
-    margin: 0px 8px;
+	outline: 1px solid $wine-outline;
+	outline-offset: -1px;
+	margin: 0px 8px;
 
-    p {
-        font-weight: 300;
-        font-size: 1em;
-        margin: 8px 0px;
-    }
+	p {
+		font-weight: 300;
+		font-size: 1em;
+		margin: 8px 0px;
+	}
 
-    a {
-        color: $mint-light;
-        font-weight: bold;
-    }
+	a {
+		color: $mint-light;
+		font-weight: bold;
+	}
 
-    a:link {
-        color: $mint-light;
-    }
+	a:link {
+		color: $mint-light;
+	}
 
-    a:visited {
-        color: $mint-mild;
-    }
+	a:visited {
+		color: $mint-mild;
+	}
 
-    > section {
-        margin: 0px 16px;
-        
-    }
+	> section {
+		margin: 0px 16px;
+	}
 
-    > section:not(:first-child)  {
-        padding-top: 0px;
-    }
+	> section:not(:first-child) {
+		padding-top: 0px;
+	}
 
-    > section:not(:first-child)::before {
-        width: auto;
-        display: block;
-        content: '⋯';
-        font-size: 2.5em;
-        text-align: center;
-        margin: 0px;
+	> section:not(:first-child)::before {
+		width: auto;
+		display: block;
+		content: '⋯';
+		font-size: 2.5em;
+		text-align: center;
+		margin: 0px;
+	}
 
-    }
+	section {
+		> h1 {
+			font-size: 2em;
+			margin: 0px 0px 8px -16px;
+			padding: 0px 8px;
+			background-image: linear-gradient(
+				90deg,
+				$wine-outline,
+				$wine-outline 150px,
+				transparent 100%
+			);
 
-    section {
-        > h1 {
-            font-size: 2em;
-            margin: 0px 0px 8px -16px;
-            padding: 0px 8px;
-            background-image: linear-gradient(
-                90deg,
-                $wine-outline,
-                $wine-outline 150px,
-                transparent 100%
-            );
-        
-            // outline: 1px solid $wine-outline;
-        }
-        > h2 {
-            font-size: 1.5em;
-            margin: 8px 0px 8px -16px;
-            padding: 0px 8px;
-            background-image: linear-gradient(
-                90deg,
-                $wine-outline,
-                $wine-outline 250px,
-                transparent 75%
-            );
-            // outline: 1px solid $wine-outline;
-        }
-        > h3 {
-            font-size: 1.35em;
-            margin: 8px 0px 8px -16px;
-            padding: 0px 16px;
-            background-image: linear-gradient(
-                90deg,
-                $wine-outline,
-                $wine-outline 150px,
-                transparent 50%
-            );
-        }
-        > h4 {
-            font-size: 1.125em;
-            text-align: left;
-            margin: 8px 0px 8px -24px;
-            padding: 0px 16px;
-            // background-image: linear-gradient(
-            //     90deg,
-            //     $wine-outline,
-            //     $wine-outline 150px,
-            //     transparent 50%
-            // );
-            // word-wrap: break-word;
-            // text-decoration: underline;
-            overflow-wrap: normal;
-            // word-break: normal;
-            hyphens: manual;
-            hyphenate-character: '-';
-            -webkit-hyphens: manual;
-            -webkit-hyphenate-character: 'q';
-        }
-        > ol {
-            padding-left: 32px;
-        }
+			// outline: 1px solid $wine-outline;
+		}
+		> h2 {
+			font-size: 1.5em;
+			margin: 8px 0px 8px -16px;
+			padding: 0px 8px;
+			background-image: linear-gradient(90deg, $wine-outline, $wine-outline 250px, transparent 75%);
+			// outline: 1px solid $wine-outline;
+		}
+		> h3 {
+			font-size: 1.35em;
+			margin: 8px 0px 8px -16px;
+			padding: 0px 16px;
+			background-image: linear-gradient(90deg, $wine-outline, $wine-outline 150px, transparent 50%);
+		}
+		> h4 {
+			font-size: 1.125em;
+			text-align: left;
+			margin: 8px 0px 8px -24px;
+			padding: 0px 16px;
+			// background-image: linear-gradient(
+			//     90deg,
+			//     $wine-outline,
+			//     $wine-outline 150px,
+			//     transparent 50%
+			// );
+			// word-wrap: break-word;
+			// text-decoration: underline;
+			overflow-wrap: normal;
+			// word-break: normal;
+			hyphens: manual;
+			hyphenate-character: '-';
+			-webkit-hyphens: manual;
+			-webkit-hyphenate-character: 'q';
+		}
+		> ol {
+			padding-left: 32px;
+		}
 
-        ul {
-            padding-inline-start: 24px;
-        }
+		ul {
+			padding-inline-start: 24px;
+		}
 
+		> ul {
+			border-left: none;
+			padding-inline-start: 6px;
+			margin-left: 16px;
+		}
 
-        > ul {
-            border-left: none;
-            padding-inline-start: 6px;
-            margin-left: 16px;
-        }
+		// h2 sections
+		> section {
+			padding-left: 0px;
+		}
 
-        // h2 sections
-        > section {
-            padding-left: 0px;
-        }
+		// h4+ sections
+		> section > section section {
+			margin-left: 0px;
+		}
 
-        // h4+ sections
-        > section > section section  {
-            margin-left: 0px;   
-        }
+		h1 code,
+		h2 code,
+		h3 code,
+		h4 code,
+		h5 code {
+			background-color: unset !important ;
+			outline: none !important;
+		}
+	}
 
-        h1 code, h2 code, h3 code, h4 code, h5 code {
-            background-color: unset !important ;
-            outline: none !important;
-        }
-    }
+	:not(.shiki) > code {
+		display: inline-flex;
+		background-color: $mint-darker;
+		outline: $mint-outline 1px solid;
+		font-family: 'fira code';
+		padding: 0px 4px;
+		margin: 0px 1px;
+		font-size: 1em;
+		white-space: nowrap;
+		overflow-x: auto;
+		overflow-y: auto;
+		max-width: 100%;
+		scrollbar-width: none;
+	}
 
-    :not(.shiki) > code {
-        display: inline-flex;
-        background-color: $mint-darker;
-        outline: $mint-outline 1px solid;
-        font-family: 'fira code';
-        padding: 0px 4px;
-        margin: 0px 1px;
-        font-size: 1em;
-        white-space: nowrap;
-        overflow-x: auto;
-        overflow-y: auto;
-        max-width: 100%;
-        scrollbar-width: none;
-    }
+	:not(.shiki) > code::-webkit-scrollbar {
+		display: none;
+		width: 0px;
+		height: 0px;
+	}
 
-    :not(.shiki) > code::-webkit-scrollbar {
-        display: none;
-        width: 0px;
-        height: 0px;
-    } 
+	table {
+		border-collapse: collapse;
+		border-spacing: 0px;
+		font-size: 90%;
+		margin: 16px 0px;
+		padding: 0px 0px;
 
-    table {
-        border-collapse: collapse;
-        border-spacing: 0px;
-        font-size: 90%;
-        margin: 16px 0px;
-        padding: 0px 0px;
-    
-        display: block;
-        max-width: fit-content;
-        overflow-x: auto;
-        // white-space: nowrap;
-        table-layout: fixed;
-    
-        background-color: $mint-dark;
+		display: block;
+		max-width: fit-content;
+		overflow-x: auto;
+		// white-space: nowrap;
+		table-layout: fixed;
 
-        outline: $mint-outline 1px solid;
-        transform: scale(1);
-    }
+		background-color: $mint-dark;
 
-    tr {
-        border-bottom: 1px solid $mint-outline;       
-    }
+		outline: $mint-outline 1px solid;
+		transform: scale(1);
+	}
 
-    tr:hover {
-        background-color: $mint-darker;
-    }
-    
-    td {
-        vertical-align: middle;
-        border-color: transparent;
-        padding: 10px 10px;
-        z-index: 1;
-        min-width: 200px;
-        // width: 20px;
-        & :has(code) {
-            min-width: 0px;
-            background-color: aliceblue;
-        }
-    }
+	tr {
+		border-bottom: 1px solid $mint-outline;
+	}
 
-    th {
-        border: 1px solid ;
-        border-color: transparent transparent $mint-outline transparent;
-        padding: 10px 5px;
-        width: max-content;
-        
-        background-color: $mint-darker; 
-    }
+	tr:hover {
+		background-color: $mint-darker;
+	}
 
-    blockquote {
-        background-color: $wine-light;
-        border-left: 2px solid $wine-outline;
-        padding: 8px 8px 8px 16px;
-        margin: 16px 16px 16px 8px;
-        box-shadow: 0px 4px 8px 0px #00000066;
+	td {
+		vertical-align: middle;
+		border-color: transparent;
+		padding: 10px 10px;
+		z-index: 1;
+		min-width: 200px;
+		// width: 20px;
+		& :has(code) {
+			min-width: 0px;
+			background-color: aliceblue;
+		}
+	}
 
-        p {
-            margin: 0px 0px 0px 0px;
-        }
-        p:not(:last-child)  {
-            margin: 0px 0px 12px 0px;
-        }
-    }
+	th {
+		border: 1px solid;
+		border-color: transparent transparent $mint-outline transparent;
+		padding: 10px 5px;
+		width: max-content;
 
-    hr {
-        width: 75%;
-        border: dashed 0.1px #aaa;
-        border:none;
-        height: 1px;
-        background-color: #aaa;
-    }
-    
-    .footnotes::before {
-        content: "Footnotes";
-        text-align: center;
-        display: block;
-        padding-top: 0px;
-        font-size: 1.2em;
-    }
-    .footnotes {
-        font-size: 0.9em;
-        font-weight: 350;
-        margin: 0px 16px 0px 16px;
-        // padding: 4px 16px 16px 16px;
-    }
-    
-    .footnotes ol {
-        padding-inline-start: 24px;
-    }
-    
-    .footnotes li:not(:last-child) {
-        padding-bottom: 1em;
-    }
+		background-color: $mint-darker;
+	}
 
-    .footnote-backref {
-        vertical-align: super;
-        font-size: 60%;
-    }
+	blockquote {
+		background-color: $wine-light;
+		border-left: 2px solid $wine-outline;
+		padding: 8px 8px 8px 16px;
+		margin: 16px 16px 16px 8px;
+		box-shadow: 0px 4px 8px 0px #00000066;
 
+		p {
+			margin: 0px 0px 0px 0px;
+		}
+		p:not(:last-child) {
+			margin: 0px 0px 12px 0px;
+		}
+	}
 
+	hr {
+		width: 75%;
+		border: dashed 0.1px #aaa;
+		border: none;
+		height: 1px;
+		background-color: #aaa;
+	}
+
+	.footnotes::before {
+		content: 'Footnotes';
+		text-align: center;
+		display: block;
+		padding-top: 0px;
+		font-size: 1.2em;
+	}
+	.footnotes {
+		font-size: 0.9em;
+		font-weight: 350;
+		margin: 0px 16px 0px 16px;
+		// padding: 4px 16px 16px 16px;
+	}
+
+	.footnotes ol {
+		padding-inline-start: 24px;
+	}
+
+	.footnotes li:not(:last-child) {
+		padding-bottom: 1em;
+	}
+
+	.footnote-backref {
+		vertical-align: super;
+		font-size: 60%;
+	}
 }
 
 .shiki {
-    font-weight: 300;
-    font-family: 'Consolas', Courier, monospace;
-    will-change: transform;
-    outline: #777 solid 1px;
-    outline-offset: -1px;
-    padding: 1ch;
-    margin: 16px 0px;
-    font-size: 14px;
-    overflow-x: scroll;
-    position: relative;
-    z-index: 1;
-    /* max-width: 100px; */
-    box-sizing: border-box;
-
+	font-weight: 300;
+	font-family: 'Consolas', Courier, monospace;
+	will-change: transform;
+	outline: #777 solid 1px;
+	outline-offset: -1px;
+	padding: 1ch;
+	margin: 16px 0px;
+	font-size: 14px;
+	overflow-x: scroll;
+	position: relative;
+	z-index: 1;
+	/* max-width: 100px; */
+	box-sizing: border-box;
 }
 
 .shiki code {
-    counter-reset: step;
-    counter-increment: step 0;
+	counter-reset: step;
+	counter-increment: step 0;
 }
 
 .shiki code .line::before {
-    content: counter(step);
-    counter-increment: step;
-    width: 3ch;
-    margin-right: 1.5ch;
-    padding-right: 0.5ch;
-    display:inline-block;
-    text-align: right;
-    color:#999;
-    box-shadow: 1px 0px 0px 0px #444; 
+	content: counter(step);
+	counter-increment: step;
+	width: 3ch;
+	margin-right: 1.5ch;
+	padding-right: 0.5ch;
+	display: inline-block;
+	text-align: right;
+	color: #999;
+	box-shadow: 1px 0px 0px 0px #444;
 }
 
 .caution {
-    background-color: unset;
-    padding: 0px;
-    margin: 32px auto;
-    overflow: hidden;
-    outline: 1px solid #f5f568FF;
-    outline-offset: -1px;
-    box-shadow: 0px 0px 32px 0px black;
-    border-left: none !important;
+	background-color: unset;
+	padding: 0px;
+	margin: 32px auto;
+	overflow: hidden;
+	outline: 1px solid #f5f568ff;
+	outline-offset: -1px;
+	box-shadow: 0px 0px 32px 0px black;
+	border-left: none !important;
 
-    width: max-content;
+	width: max-content;
 
-    .hed {
-        display: block;
-        content: '';
-        background-image: repeating-linear-gradient(
-            -45deg,
-            black,
-            black 10px,
-            #f5f568 10px,
-            #f5f568 20px
-        );
-        overflow: hidden;
-        min-height: 12px;
-        button {
-            // height: 20px;
-            span {
-                padding: 32px 0px;
-                min-width: 25%;
-                text-align: center;
-                box-sizing: border-box;
-                // margin: 32px;
-                background-color: black;
-                color: #f5f568;
-                h4 {
-                    font-family: "Fira Code", serif !important;
-                }
-                
-            }
-        }
-    }
+	.hed {
+		display: block;
+		content: '';
+		background-image: repeating-linear-gradient(
+			-45deg,
+			black,
+			black 10px,
+			#f5f568 10px,
+			#f5f568 20px
+		);
+		overflow: hidden;
+		min-height: 12px;
+		button {
+			// height: 20px;
+			span {
+				padding: 32px 0px;
+				min-width: 25%;
+				text-align: center;
+				box-sizing: border-box;
+				// margin: 32px;
+				background-color: black;
+				color: #f5f568;
+				h4 {
+					font-family: 'Fira Code', serif !important;
+				}
+			}
+		}
+	}
 
-    .hed:before {
-        border-color: transparent transparent transparent transparent !important;  
-    }
+	.hed:before {
+		border-color: transparent transparent transparent transparent !important;
+	}
 
-    .inner{
-        background-color: #f5f568;
-        font-weight: 800;
-        color: black;
-        padding: 24px;
+	.inner {
+		background-color: #f5f568;
+		font-weight: 800;
+		color: black;
+		padding: 24px;
 
-        p {
-            font-weight: 800;
+		p {
+			font-weight: 800;
 
-            strong {
-                font-variant: small-caps;
-            }
-        }
-    }
-
-
+			strong {
+				font-variant: small-caps;
+			}
+		}
+	}
 }
