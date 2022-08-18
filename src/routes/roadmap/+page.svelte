@@ -56,6 +56,10 @@
 	let active = groups[0].items[0];
 </script>
 
+<svelte:head>
+	<title>Vada Roadmap</title>
+</svelte:head>
+
 <div class="caution">
 	<div class="hed" />
 	<div class="inner">Under Construction.</div>

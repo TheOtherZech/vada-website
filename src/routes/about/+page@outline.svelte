@@ -7,6 +7,10 @@
 	);
 </script>
 
+<svelte:head>
+	<title>About Vada</title>
+</svelte:head>
+
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte';

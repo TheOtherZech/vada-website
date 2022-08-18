@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Vada Privacy Policy</title>
+</svelte:head>
+
 <div class="article">
 	<section>
 		<h1>Privacy Policy</h1>

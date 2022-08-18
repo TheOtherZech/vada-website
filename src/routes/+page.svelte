@@ -8,6 +8,10 @@
 	import ExternalLink from '@svicons/heroicons-solid/external-link.svelte';
 </script>
 
+<svelte:head>
+	<title>Vada Language</title>
+</svelte:head>
+
 <div class="content">
 	<div class="top-blurb">
 		<p>

@@ -7,6 +7,10 @@
 	);
 </script>
 
+<svelte:head>
+	<title>Vada Documentation</title>
+</svelte:head>
+
 {#each mdComponents as section}
 	<svelte:component this={section[1].default} />
 {/each}
