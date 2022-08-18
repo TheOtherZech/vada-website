@@ -8,10 +8,6 @@ import sectionize from 'remark-sectionize';
 import remarkFootnotes from 'remark-footnotes';
 
 const mdsvex_config = mdsvex({
-	// layout: {
-	//     'test': './src/lib/layout/MDSection.svelte'
-	// },
-
 	extensions: ['.svelte', '.svx'],
 
 	highlight: {
