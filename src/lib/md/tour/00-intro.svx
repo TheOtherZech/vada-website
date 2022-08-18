@@ -1,0 +1,313 @@
+---
+title: Intro
+---
+
+<script>
+    import Foldable from '$lib/Foldable.svelte';
+    import FolderTree from "$lib/FolderTree.svelte";
+    import Card from "$lib/Card.svelte";
+</script>
+
+# A Tour of Vada
+
+Vada is an idiosyncratic language with diverse influences. The design patterns that inform its architecture can feel strange, especially for those who are only used to C-like languages. This tour covers some of the _what_ and _whys_ of Vada without getting too deep into the implementation details, in order to (hopefully) de-strange it a bit.
+
+<Card kind="caution">
+
+Under Construction. Expect a Mess.
+
+</Card>
+
+## What Exactly _is_ Vada?
+
+The elevator pitch for Vada is that it's data language "designed to take the pain out of composing, validating, and transforming data artifacts."
+
+The concrete use case Vada focuses on, however, is wrangling the specific kinds of _aggregate entity data_ artifacts you commonly see in game development.
+
+This means Vada is built for folks who need to write and manage diverse data sets comprised of large table-like lists inside of deeply nested hierarchical structures, where records are spread across multiple files in multiple directories and upwardly aggregated[^00-1] to form output artifacts.
+
+It also means that Vada is built for cross-disciplinary teams, where senior developers need to provide cleanly siloed schemas and tools to designers, artists, and translators in ways that minimize processorial footguns.
+
+And perhaps most importantly, it means that Vada is built for environments where tools need to be hackable, extensible, and shippable.
+
+At the output level, Vada handles like a database.
+
+At the record level, Vada handles like a config language.
+
+At the expression level, Vada handles like an unholy merger of Elixir and MATLAB.
+
+At the parser level, Vada handles like an easily pluggable data evaluation toolkit.
+
+Vada is a lot of things.
+
+## Core Concepts
+
+Vada doesn't try to be a programming language, which means it contains a mountain of _weird_ and a small dash of the familiar.
+
+Before we get too deep into the details, though, it's important to establish the common terms you'll seen thrown around throughout this tour. Here's our core vocab:
+
+- A Vada project is called an **Archive**.
+- **Archives** are comprised of **Collections**.
+  - A **Collection** can be as small as a definition in a file, or spread across multiple files in a directory.
+- **Collection** are comprised of **Sections**.
+  - **Sections** can be comprised of **Records**, **Schemas**, **Transforms**, **Accessors**, and sub-**Sections**.
+    - A **Record** is a unit of data, comprised of a **Container**, one or more **Primitives**, and zero or more **Representations**.
+      - **Containers** determine how data is encapsulated.
+        <!-- - `!uniform` Fixed size, uniformly constrained, Nd. Scalars, vectors, and matrices, etc.
+        - `!list` Variable size, span constrained, 2d. Lists, arrays, etc.
+        - `!struct` Variable size, member constrained, 2d. Documents, entities, objects, etc.
+          - Can have their own interior **Sections**
+        - `!sink` Algebraic data type wrapper. -->
+      - **Primitives** determine the data's underlying 'Type'.
+        <!-- - `!number`
+          - `!int`
+          - `!dec` Arbitrary decimal precision
+          - `!complex`
+        - `!string`
+        - `!raw`
+          - `!char`
+          - `!byte`
+          - `!arb`
+        - `!flag`
+        - `!bool` -->
+      - **Representations** determine how data is serialized.
+    - A **Schema** is an _unreified_ **Record** that can take input, encapsulating a series of constraints into something like a Type constructor.
+    - A **Transform** is Vada's version of a function.
+  - **Sections** function as both semantic groups and as capture groups. They do a lot of heavy lifting throughout Vada.
+- Every **Archive** and **Collection** has a **Manifest**, a special **Section** that defines its imports and interfaces.
+  - **Manifests** can be defined as **Sections**, or with `__manifest.Vada` files (for directories).
+  - **Manifests** are _directional_, with separate interfaces for parent, sibling, and child collections.
+    - This directionality is what lets Vada mix implicit and explicit imports.
+
+### Value Reification
+
+What is the difference between `a: 4` and `b: !int & >3 & <5`? The former explicitly assigns `4` to `a`, while the latter limits `b`'s acceptable values to integers greater than three and less than five. But are they equivalent?
+
+While it can help to think of constraint expressions as miniature validator functions when you're first starting out, the truth is that Vada considers constraints to be no different than any other value or expression. Every expression in Vada is, fundamentally, a description of a set and all set descriptions are values.
+
+The difference between `4` and `!int & >3 & <5` isn't that one is a value and the other is a constraint; they're both expressions that describe sets and they're even descriptions of the _same_ set. The difference is their concreteness. Both _describe_ `4`, but where `a` is a _concrete_ description of `4`, `b` is an _abstract_ description of `4`.
+
+If you wanted to compare `a` and `b`, you'd first have to extract a list of `b`'s possible values from its upper and lower bounds, and then collapse that list to a uniform in order to derive a value that has the same concreteness and container as `a`. 
+
+In order words, you'd have to **reify** `b` in order to compare it to `a`.
+
+A core pillar of Vada's design is the assertion that all valid expressions produce sets which are members of a partially ordered superset that forms the language's type lattice.[^00-2]
+
+Value reification is the process of converting an upper (abstract) member of the lattice into an equivalent lower (concrete) member of the lattice by explicitly enumerating upper's inner members into an appropriate container that reflects its topology. 
+
+Reifying an abstract value is comparable to traversing the greater type lattice to find the abstract value's concrete pair, affirming its position in a secondary lattice of concretely-representable types. Abstract values that *can't* be reified (e.g. infinite expressions such as `>0` and `!=2`) have no concrete pairs, and are therefore excluded from the secondary lattice.
+
+<Foldable slug="everything-is-a-value" hed="Behavior as Data">
+
+  A consequence of Vada's system of value reification is that a lot of what you'd typically think of as behavior in other languages is (unreified) data in Vada. This is especially true for Vada's control flow, where things like switch statements are lists of expressions that can be passed around and lazily reified.
+</Foldable>
+
+### Semantic Interfaces
+
+Another pillar of Vada's design is the use of semantic interfaces (Sections) to create parallel access patterns.
+
+```vada
+someRecord: {
+    --- SectionA:
+    fieldA: 123
+    fieldB: "abc"
+    fieldC: (0.2, -0.05, 1.3)
+    --- SectionB:
+    fieldD: true
+    fieldE: "jimmy"
+}
+```
+
+Sections group records together without nesting them inside a struct. `fieldA` in the struct above is accessible through both `someRecord.fieldA` and `someRecord::SectionA::fieldA`
+
+In the above record, all of the fields can be accessed directly as members  or through Sections 
+
+This is primarily accomplished through the use of Sections. A section is something like a cross between an interface and a soft namespace, augmented with a grab-bag of things like inherent topology, captures, and field constraints.
+
+### First-Class Spatial Data
+
+If you're a MATLAB fan, Vada's syntax for multi-dimensional uniforms should feel fairly familiar, as it uses comma-separated rows and semi-colon separated columns, extended with a sensible adjacent circumfix syntax stacking the outermost axis.[^00-3]
+
+Vada is zero-indexed, but its indexing syntax differs slightly from most other languages; rather than the typical `someVar[]` syntax, Vada uses `someVar.[]`, treating indices as members.
+
+This syntax applies to uniforms, lists, *and* some fancy stuff like struct filtering and record destructuring expressions. The grammar's a bit odd on the face of it, but it lets you do some cool stuff once you get used to it.
+
+It's also worth noting that Vada uses axis indexing, where the dimensionality of the index expression matches the dimensionality of the record and slices are rotated.
+
+AKA, this:
+
+```vada
+someCube: ( 1.1, 2.1, 3.1;
+            4.1, 5.1, 6.1;
+            7.1, 8.1, 9.1 )
+          ( 1.2, 2.2, 3.2;
+            4.2, 5.2, 6.2;
+            7.2, 8.2, 9.2 )
+          ( 1.3, 2.3, 3.3;
+            4.3, 5.3, 6.3;
+            7.3, 8.3, 9.3 )
+
+// Rotated from XZ to XY
+xPlane: someCube.[0][ ][ ] // 1.1, 2.1, 3.1;
+                           // 1.2, 2.2, 3.2;
+                           // 1.3, 2.3, 3.3
+
+// Rotated from YZ to XY
+yPlane: someCube.[ ][0][ ] // 1.1, 4.1, 7.1;
+                           // 1.2, 4.2, 7.2;
+                           // 1.3, 4.3, 7.3
+
+// Inherently XY oriented
+zPlane: someCube.[ ][ ][0] // 1.1, 2.1, 3.1;
+                           // 4.1, 5.1, 6.1;
+                           // 7.1, 8.1, 9.1
+```
+
+Combined with prefix inversion `~someVec`, prefix transposition `%someVec`, infix wedge product `someVec ^^ anotherVec`, infix cross product `someVec ** anotherVec`, and piped swizzle-reshape `someVec->(1,0,2)`, Vada's approach to multi-dimensional data removes mountains of boilerplate code for game development.
+
+<Foldable slug="higher-dimension-slices" hed="Higher Dimension Slices">
+
+While 3d→2d projections are relatively easy to grok, higher-dimension rotations are... less so.
+
+```vada
+hCube: 
+  { 
+    [ (1.0, 2.0, 3.0)(4.0, 5.0, 6.0)(7.0, 8.0, 9.0) ]
+    [ (1.1, 2.1, 3.1)(4.1, 5.1, 6.1)(7.1, 8.1, 9.1) ]
+    [ (1.2, 2.2, 3.2)(4.2, 5.2, 6.2)(7.2, 8.2, 9.2) ] }
+  { 
+    [ (1.3, 2.3, 3.3)(4.3, 5.3, 6.3)(7.3, 8.3, 9.3) ]
+    [ (1.4, 2.4, 3.4)(4.4, 5.4, 6.4)(7.4, 8.4, 9.4) ]
+    [ (1.5, 2.5, 3.5)(4.5, 5.5, 6.5)(7.5, 8.5, 9.5) ] }
+  { 
+    [ (1.6, 2.6, 3.6)(4.6, 5.6, 6.6)(7.6, 8.6, 9.6) ]
+    [ (1.7, 2.7, 3.7)(4.7, 5.7, 6.7)(7.7, 8.7, 9.7) ]
+    [ (1.8, 2.8, 3.8)(4.8, 5.8, 6.8)(7.8, 8.8, 9.8) ] }
+
+// Strictly speaking, all single-index slices of multi-dimensional uniforms
+// can be seen as k-blades (pseudovectors) of the uniform's vector space.
+xMat: hCube.[0][ ][ ][ ]   // [ (1.0, 2.0, 3.0)(1.1, 2.1, 3.1)(1.2, 2.2, 3.2) ]
+                           // [ (1.3, 2.3, 3.3)(1.4, 2.4, 3.4)(1.5, 2.5, 3.5) ]
+                           // [ (1.6, 2.6, 2.6)(1.7, 2.7, 3.7)(1.8, 2.8, 3.8) ]
+
+yMat: hCube.[ ][0][ ][ ]   // [ (1.0, 1.1, 1.2)(4.0, 4.1, 4.2)(7.0, 7.1, 7.2) ]
+                           // [ (1.3, 1.4, 1.5)(4.3, 4.4, 4.5)(7.3, 7.4, 7.5) ]
+                           // [ (1.6, 1.7, 1.8)(4.6, 4.7, 4.8)(7.6, 7.7, 7.8) ]
+
+zMat: hCube.[ ][ ][0][ ]   // [ (1.0, 2.0, 3.0)(4.0, 5.0, 6.0)(7.0, 8.0, 9.0) ]
+                           // [ (1.3, 2.3, 3.3)(4.3, 5.3, 6.3)(7.3, 8.3, 9.3) ]
+                           // [ (1.6, 2.6, 3.6)(4.6, 5.6, 6.6)(7.6, 8.6, 9.6) ]
+
+wMat: hCube.[ ][ ][ ][0]   // [ (1.0, 2.0, 3.0)(4.0, 5.0, 6.0)(7.0, 8.0, 9.0) ]
+                           // [ (1.1, 2.1, 3.1)(4.1, 5.1, 6.1)(7.1, 8.1, 9.1) ]
+                           // [ (1.2, 2.2, 3.2)(4.2, 5.2, 6.2)(7.2, 8.2, 9.2) ]
+
+// The .[] grammar makes it easy to chain index expressions,
+// such that you can extract sub-slices without having to
+// rely on a mess of range expressions
+tVec: hCube.[ ][ ][ ][0]
+               .[ ][ ][0] 
+               .[0][ ] // (1.0, 2.0, 3.0)
+
+tVec: hCube.[0][ ][0][0]
+```
+</Foldable>
+
+
+**TL;DR:** All the data axes. Literally. All of them. Slice it all the ways.
+
+### Sensible Data Serialization
+
+Where data is generally immutable during evaluation, the serialization process is more flexible, as the way you structure your data for evaluation is decoupled from how you structure it for export.
+
+Data representations can be handled at the schema, section, *and* archive level, letting you build up your serialization model piece-by-piece, override it where necessary, and handle it as modularly (or non-modularly) as you want — all while maintaining topological guarantees. 
+
+Critically, Vada's serialization process is designed facilitate data flattening, turning hierarchical data and lists of structs into space-efficient and access-efficient binary archives utilizing structs of arrays and common data tables.
+
+Where common numeric representations fall short, Vada lets you define custom bit-packing schemas that (optionally) export memory-safe unpacking instructions as a part of the binary archive's header table. This enables rapid iteration in development environments by alleviating the need to regenerate the consuming applications' unpacking code, and the selective inclusion of dynamic deserialization in production[^00-4].
+
+And it can do JSON/YAML/CSV stuff. Because reasons.
+
+<Foldable slug="fold-test" hed="Why Would I Need Custom Packing?">
+
+  **TL;DR:** Vada targets the gaming industry, where stuff gets encoded in all sorts of weird mixed-precision ways and folks end up engineering weird kinds of data polymorphism via bitvecs and integer packing so they can abuse manually aligned structs and not refactor their data pipelines.
+
+  Vada's approach to packing (especially with the `!raw` primitive and its various non-decimal numeric literals) lets you indulge in all of that in a way that's readable and maintainable. 
+  
+  Is it a whole pile of stuff that you probably shouldn't do in the first place? Come on, man. Don't call out Blizzard like that.
+</Foldable>
+
+And because Vada knows how headache-inducing data packing can be, it gives you a ton of ways to handle it.
+
+### Directional Data Propagation
+
+<FolderTree
+tree = {{
+        title: "someArchive", kind: "folder",
+        comment: "Root Directory",
+        children: [
+            { title: "types", kind:"folder",
+                comment: "A directory collection for utility types",
+                children: [
+                    { title: "typeGroupA.va", kind: "file", children: [] },
+                    { title: "typeGroupB.va", kind: "file", children: [] },
+                    { title: "__manifest.va", kind: "file", children: [] },
+                    { title: "...", kind: "", children: [] }
+                ]
+            },
+            { title: "data", kind:"folder",
+                comment: "Primary Collection Tree",
+                children: [
+                    { title: "subCollection", kind: "folder",
+                        children: [
+                            { title: "...", kind: "", children: [], comment: "Leaf nodes, etc", },
+                        ]
+                    },
+                    { title: "__manifest.dxl", kind: "file", children: [],
+                        comment: "We'd import the types Collection here\n to expose it to the sub-Collections" },
+                    { title: "aFile.dxl", kind: "file", children: [] },
+                    { title: "anotherFile.dxl", kind: "file", children: [] },
+                    { title: "...", kind: "", children: [] },
+                ]
+            },
+            { title: "someCollection.dxl", kind: "file", children: [],
+                comment: "A small single-file Collection"
+            },
+            { title: "__manifest.dxl", kind: "file", children: [],
+                comment: "Output layout, imports, etc."
+            },
+        ]
+    }}
+/>
+
+While Vada is heavily inspired by [CUE](https://cuelang.org/), it handles scoping and propagation in a _very_ different way. 
+
+Where CUE uses pure downwards propagation with siloed directories (in which there is no cross-branch propagation of data or constraints), Vada uses **directional interfaces** to allow cross-propagation from siblings without creating unresolvable circular dependencies.
+
+The TL;DR on directional interfaces is that collections can differentiate what they expose for export for each direction they export it in (e.g. to-parent, to-child, to-sibling).
+
+This lets users establish _cross_-dependencies while preventing _circular_ dependencies footguns by presenting separate silos of data and selectively flattening siblings through single-child upwards interfaces.
+
+> **Spoilers:** 99% of the time, these data propagation details will only matter if you're deliberately doing weird stuff. 
+> 
+> Downward interfaces propagate implicitly. Upwards and horizontal interfaces propagate explicitly. All interfaces let you keep things clean by re-arranging and filtering data.
+> 
+> It might sound complicated, but it's simple in practice.
+
+### Full Toolchain Incremental Compilation
+
+Vada's evaluator is written in a way that lets the language server and CLI share an incremental compute cache — every time semantic tokens are updated in your IDE, the intermediate data representation used to generate output files is updated as well. 
+
+And since Vada is deterministically evaluated, compute caches can be remotely calculated and shared.
+
+This shared cache setup can be leveraged in a variety of CI/CD pipelines. It's deliberately left as an open-ended opportunity for hackery.
+
+[^00-1]: "Upwards propagating" meaning the opposite of CUE's root-to-leaf downwards propagation model.
+
+[^00-2]: Just... Don't worry about it.
+
+[^00-3]:
+    Adjacent circumfixes are interpreted as the 'next' axis of the list or uniform, such that `(1)(2)(3)` is equivalent to `(1,2,3)` and `(1,2,3)(4,5,6)` is equivalent to `(1,2,3;4,5,6)`. This also works recursively for higher-dimension data; 3D data can be written as `(1,2;3,4)(5,6;7,8)`, 4D data can be written as `( (1,2;3,4)(5,6;7,8) )( (1,2;3,4)(5,6;7,8) )`, and so on.
+
+
+[^00-4]: Yes, you can stranger danger yourself with this. Be smart about it.

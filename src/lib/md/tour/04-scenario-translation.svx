@@ -1,0 +1,120 @@
+---
+title: "A Common Scenario: Managing Translation Tables"
+---
+
+<script>
+    import Foldable from '$lib/Foldable.svelte';
+    import FolderTree from "$lib/FolderTree.svelte";
+    import TabBlock from "$lib/TabBlock.svelte";
+</script>
+
+# A Common Scenario: Managing Text Localizations
+
+So you're a studio. And you need a data pipeline that makes it easy for translators to contribute translations of entity names and UI text. That pipeline needs to support easy post-release updates (and maybe even OTA updates), because there's no way you'll be able to get all of the translation work done before you ship 1.0, and
+
+Here's where Vada can factor in.
+
+## Leveraging the `!str::disp` Primitive
+
+The `!str::disp` primitive is for Display Strings, and comes with some fancy features for templating, as well as the ability to both implicitly and explicitly link them to `@variants` tables.[^04-1]
+
+## Using `@variants`
+
+A `@variants` table can be defined directly in a containing Section, as a part of a collection's manifest, or through the `@variants` longitudinal inherent collection. 
+
+> Longitudinal inherents are, by far, the most powerful option for managing localizations, so hit the foldable if you're not familiar with them.
+
+<Foldable slug="longitudinal-crash-course" hed="What's a Longitudinal Inherent?">
+
+A longitudinal inherent collection is a collection tree that exists alongside the archive's actual contents, shadowing its structure and providing access to the matching inherent _section_ that exists in each collection. 
+
+Here's what that might look like:
+
+<FolderTree
+tree = {{
+    title: "someArchive", kind: "folder",
+    children: [
+    { title: "content", kind: "folder",
+        comment: "The Stuff",
+        children: [
+            { title: "collectionA", kind: "folder", children: [
+                { title: "subCollectionA", kind: "folder", children: [] },
+                { title: "subCollectionB", kind: "folder", children: [] }
+            ] },
+            { title: "collectionB", kind: "folder", children: [] },
+            { title: "collectionC", kind: "folder", children: [] }
+        ]
+    },
+    { title: "@variants", kind: "folder",
+        comment: "Sub collections with each localization variant",
+        children: [
+            { title: "en-US", kind: "folder",
+                children: [
+                    { title:"content", kind: "folder", children: [ 
+                    { title: "collectionA", kind: "folder", children: [
+                        { title: "subCollectionA", kind: "folder", children: [] },
+                        { title: "subCollectionB", kind: "folder", children: [] }
+                    ] },
+                    { title: "collectionB", kind: "folder", children: [] },
+                    { title: "collectionC", kind: "folder", children: [] }
+                ]}
+            ] },
+            { title: "fr", kind: "folder", children: [],  comment: "Each of these also shadows" },
+            { title: "it", kind: "folder", children: [] },
+            { title: "etc...", kind: "folder", children: [] }
+        ]
+    }
+    ]
+}}
+/>
+
+Longitudinal inherents serve as a convenient way to separate concerns inside an archive, letting users work inside siloed slices of data in a way that plays nicely with IDE's and code generation tools. While the focus here is on the longitudinal of `@variants` for localization purposes, the same approach can also be used for other inherents, such as `@repr` and `@manifest`.
+
+</Foldable>
+
+A `@variants` table can be created for any record field, but Display Strings have the most support in terms of automated detection and code generation.
+
+<TabBlock group="scn-tl" tabs = { [ {title: "test.va", slug: "slug"}] }  >
+<div class="block0">
+
+```vada
+@module: PersonData
+
+--- @Imports:
+@std::util::$.[$utilSchema]
+
+--- @Local:
+$edType: "None" | "Highschool" | "Undergraduate" | "Graduate"
+$desc_string: !str & != ""
+
+--- @Public:
+$personSchema: $utilSchema & {
+    @Doc::short: "A basic structure for person data"
+    --- Basic:
+    name: $desc_string
+    age: !int & > 0
+    address: @Local::$addrStruct | @None // Words!
+
+    --- Experience:
+    employer: (!str & != "") | @None
+    education: [($edType, $desc_string), ...]
+    certs: [!str & != "", ...] | @None
+
+    #score: certs->#reduce(@sum)
+        + education->#reduce: + _ ?>
+            "None" ?> 0;
+            "Highschool" ?> 1;
+            "Undergraduate" ?> 4;
+            "Graduate" ?> 6
+}
+```
+
+</div>
+</TabBlock>
+
+[^04-1]: 
+    Vada's approach to Display Strings takes inspiration from Unreal Engine's `FText` implementation, albeit with a notably different approach to building and interacting with the actual sets of translation data.
+
+    Regarding Vada's other string primitives, `!str::simple` is for strings that are just strings, while `!str::slug` is for strings meant to serve as internal, scoped, identifiers.
+
+    And yes, `!str::slug` is inspired by Unreal's `FName` type.

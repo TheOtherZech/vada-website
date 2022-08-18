@@ -1,0 +1,49 @@
+---
+title: CLI Usage
+---
+
+<script>
+    import Foldable from '$lib/Foldable.svelte';
+    // import FolderTree from "$lib/FolderTree.svelte";
+</script>
+
+# The Vada CLI
+
+Vada's CLI is designed to work with multiple named variants of the evaluator existing side-by-side, such that archives can specify both the version number _and_ variant name of the evaluator they target. This setup makes it easy for studios to juggle project-specific extensions of the evaluator without having to mess with CLI aliases and/or PATH trickery.
+
+Is this a mildly over-engineered way to implement a CLI? Yes. It is definitely an over-engineered CLI.
+
+<Foldable slug="CLI-roadmap" hed="The CLI Roadmap">
+
+The long-term plan for the CLI is to make it even _more_ over-engineered, until we end up with something approaching an actual database CLI, complete with robust CRUD functionality and migration tools.
+
+Why? Because Vada's core use case involves archives large enough and diverse enough that you kinda need SQL-like broad-scale interactability in order to get things done. 
+
+And since Vada's parser uses concrete syntax trees, it's relatively easy to interact with Vada archives in a programmatic fashion. So there's a ton of head-room for CLI tooling.
+</Foldable>
+
+## Archive Configuration
+
+Vada archives are configured through their root manifest. As such, using the CLI to interact with an archive's config is really just using the CLI as an interface layer. So why do it? Because the CLI can intelligently search and navigate the config in order to help you do things.
+
+### External Archive Management
+
+Vada doesn't ship a full npm-like archive manager, because I don't have the brain juice for that and it isn't aligned with Vada's primary use case.
+
+Instead, Vada ships with tooling for using and maintaining _local-network_ git-aware archive registries. Because, let's face it, a package manager that can pull the right local branch from the studio's intranet is more useful than stranger danger-ing yourself with mystery archives from the internet.
+
+The CLI can be used to browse these registries, validate the availability of an archive's external dependencies, and determine what would be tree shaken from those external archives (and, optionally, internal collections) to generate a standalone archive from the source archive's manifest.
+
+And it can validate environment variables and build variables that influence how external archive dependencies are handled. Because bloody hell, that's the bare minimum that a CLI should do for you. The most pre pre-checking you can do. Please, people, have standards.
+
+### Output Artifact Management
+
+In addition to running the actual output process, you can also use the CLI to preview, compare, and validate output artifacts.
+
+#### Output Artifact Hashing
+
+Vada is deterministically evaluated, but you can choose to include non-deterministic data (build time, builder signature, build variables, etc.) in the header of the output artifact. You can also choose to ignore or include those non-deterministic header entries when calculating the hash of an output artifact, which means you can have your cake (and eat it, too) in pipelines that hash-check in their action triggers. 
+
+## Testing and Validating Archives
+
+Vada's CLI includes a handful of common archive queries as baked-in commands that can be used for integrity and assumption testing.

@@ -1,0 +1,31 @@
+---
+title: Intro
+---
+
+# About The Person
+
+I'm Zechen Montgomery Michael Jean-Silas Nicodemus Asherton Moor, AKA @TheOtherZech. Yes, that is my actual name. No, you aren't pronouncing it correctly. Yes, the IRS hates me.
+
+I am, technically speaking, a technical artist. I make art pipelines go brrr, which is a polite way of saying that I spend my time writing ugly spaghetti scripts and yelling at people who don't use them properly.
+
+When I am not doing the above, I retreat to the mountains and deliberately ignore your emails. Leave me alone. I'm trying to go feral.
+
+## Why?
+
+Because I'm sick of people using ad hoc systems for managing complex entity data collections, breaking those systems, and then falling back on solutions that don't mesh well with version control.
+
+Every vaguely independent studio ends up trying to roll their own solution in this domain, and the solutions they end up with are rarely built in a way that can handle scope changes and spec drift. 
+
+The tooling they implement around these solutions is rarely capable of handling anything close to a migration or mass refactor, and it inevitably devolves into brittle heap of monkey-patches and edge-cases that defies all common sense.
+
+Yes, Blizzard, I'm talking about you.
+
+## How?
+
+Look, I don't know how I learned programming. It started with just a teeny smidgen of Python for automating some common DCC tasks, and then suddenly I was working in C and learning Rust on the side.
+
+And for the web development side of things, the only thing I *intentionally* learned was how to make a dead-basic blog using Ghost back in 2015. The rest of it has been non-consensual. Please ignore the number of full stack projects I've shipped.
+
+## Where?
+
+Directly in the center of Berkeley Pit.

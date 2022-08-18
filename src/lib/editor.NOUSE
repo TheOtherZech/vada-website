@@ -1,0 +1,266 @@
+<script lang="ts">
+    import type monaco from 'monaco-editor';
+    import { onMount } from 'svelte';
+    import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+    import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+    import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+    import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+    import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+
+    import X from '@svicons/heroicons-solid/x.svelte';
+    import Minus from '@svIcons/heroicons-solid/minus.svelte';
+    import ArrowsExpand from '@svicons/heroicons-solid/arrows-expand.svelte';
+    import DocumentText from '@svicons/heroicons-solid/document-text.svelte';
+
+    let divEl: HTMLDivElement;
+    let editor: monaco.editor.IStandaloneCodeEditor;
+    let Monaco;
+
+    const defaultText =
+`someRecord: {
+    --- sectionA:
+    fieldA: 123
+    fieldB: "abc"
+    fieldC: (0.2, -0.05, 1.3)
+    --- sectionB:
+    fieldD: true
+    fieldE: "jimmy"
+}`;
+
+    onMount(async () => {
+        // @ts-ignore
+        self.MonacoEnvironment = {
+            getWorker: function (_moduleId: any, label: string) {
+                if (label === 'json') {
+                    return new jsonWorker();
+                }
+                if (label === 'css' || label === 'scss' || label === 'less') {
+                    return new cssWorker();
+                }
+                if (label === 'html' || label === 'handlebars' || label === 'razor') {
+                    return new htmlWorker();
+                }
+                if (label === 'typescript' || label === 'javascript') {
+                    return new tsWorker();
+                }
+                return new editorWorker();
+            }
+        };
+
+        Monaco = await import('monaco-editor');
+        editor = Monaco.editor.create(divEl, {
+            // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+            value: defaultText,
+            language: 'vada',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            dimension: {width: 400, height: 400}
+        });
+
+        // var hideListener = editor.addCommand(
+        //     Monaco.KeyCode.F9,
+        //     function () {
+        //         hidden = !hidden;
+        //     }
+        // )
+
+        console.log("adding event listener");
+        window.addEventListener(
+            'keyup',
+            (e) => {
+                console.log(e.key);
+                if ((e.key == "h") && (e.altKey)) {
+                    hidden = !hidden;
+                }
+                else if ((e.key == "m") && (e.altKey)) {
+                    if (!hidden) {
+                        minimized = !minimized;
+                    }
+                }
+                else if ((e.key == "n") && (e.altKey)){
+                    if (!hidden && !minimized) {
+                        maximized = !maximized;
+                    }
+                }
+            }  
+        );
+
+        return () => {
+            editor.dispose();
+        };
+    });
+
+    let minimized = false;
+    let maximized = false;
+    let hidden = true;
+
+
+</script>
+
+<div class="editor-outer" class:minimized class:maximized class:hidden>
+    <div class="editor-hed">
+        <div class="left">
+
+        </div>
+        <div class="center">
+            <div class="tab active">
+                <DocumentText width="16px"/>
+                <span>Stuff.vada</span>
+            </div>
+
+            <div class="tab ">
+                <DocumentText width="16px"/>
+                <span>Hid: {hidden} | Min: {minimized} | Full: {maximized}</span>
+            </div>
+
+        </div>
+        <div class="right">
+            <button>
+                <ArrowsExpand width="20px"/>
+            </button>
+            <button on:click={() => minimized = !minimized}>
+                <X width="20px" />
+            </button>
+        </div>
+    </div>
+    <div class="editor-body">
+        <div class="left">
+
+        </div>
+        <div class="right">
+            <div bind:this={divEl} class="h-screen"  />
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+
+    .editor-outer {
+        position: sticky;
+        bottom: 8px;
+        left: 8px;
+        background-color: #444;
+
+        width: 600px;
+        height: 400px;
+
+        z-index: 1000000;
+
+        outline: 1px solid #666;
+
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .editor-outer.maximized {
+        width: calc(100vw - 32px);
+        height: calc(100vh - 16px);
+    }
+
+    .editor-outer.minimized {
+        min-width: 0px;
+        min-height: 0px;
+        height: 32px;
+    }
+
+    .editor-outer.hidden {
+        display: none;
+        background-color: yellowgreen;
+    }
+
+
+
+    .editor-hed {
+        display: flex;
+        justify-content: space-between;
+        height: 32px;
+        padding: 0px;
+        box-sizing: border-box;
+    }
+
+    .editor-hed .left {
+        min-width: 40px;
+    }
+
+    .editor-hed .center {
+        display: flex;
+        /* align-items: flex-end; */
+        flex-grow: 8;
+    }
+
+    .editor-hed .tab {
+        background-color: #222;
+        padding: 4px 8px 4px 8px;
+        
+        border-bottom: 1px solid #666;
+        display: flex;
+        align-items: flex-end;
+        cursor: pointer;
+        font-size: 0.85em;
+        line-height: 1;
+    }
+
+    .editor-hed .tab:hover {
+        background-color: #333;
+    }
+
+    .editor-hed .tab.active {
+        border-bottom: 1px solid yellowgreen;
+        background-color: #333;
+        box-shadow: 0px 0px 8px 0px #00000088;
+        z-index: 20;
+    }
+
+    .editor-hed .tab.active:hover {
+        background-color: #444;
+    }
+
+    .editor-hed .right {
+        display: flex;
+    }
+
+    .editor-hed .right button {
+        background-color: transparent;
+        border: none;
+        color: initial;
+        transition: color 400ms;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0px 0px;
+        min-width: 30px;
+        max-height: 25px;
+    }
+
+    .editor-hed .right button:hover {
+        background-color: #666;
+    }
+
+    .editor-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        position: absolute;
+        height: calc(100% - 32px);
+        width: 100%;
+    }
+
+    .editor-body .left {
+        position:relative;
+        
+        min-width: 40px;
+    }
+
+    .editor-body .right {
+        flex-grow: 2;
+        border-left: 1px solid #555;
+        border-top: 1px solid #555;
+    }
+
+    .h-screen {
+        height: 100%;
+    }
+</style>
+

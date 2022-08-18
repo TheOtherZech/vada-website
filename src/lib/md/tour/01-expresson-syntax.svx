@@ -1,0 +1,320 @@
+---
+title: Expression Syntax
+---
+
+<script>
+    import Foldable from '$lib/Foldable.svelte';
+</script>
+
+# Expressions
+
+Vada's expression syntax is fairly unique, as it's built around a family of flexibly pipe operators that you won't see in most other languages. And since many of Vada's other grammatical quirks are tied to these operators, understanding them is an important part of understanding Vada as a whole.
+
+## Expression Structure
+
+Vada's formal BNF expression grammar is long and tedious and no one actually knows how to read it.
+
+That said, the average Vada user _should_ know that its expression structure is engineered for clarity, even when that means diverging from the general C-like patterns most programmers are used to. 
+
+The primary way Vada does this is through clause patterns that arise from its low-precedence Outer Pipe operator and the equally low-precedence open transform grammar. 
+
+Combined with The Implicit (a context variable similar to `Self` in other languages, but for the clause-level expression value), they they make it easy to perform imperative sequences of operation within a single expression, while also limiting the number of circumfixes needed to clarify precedence.
+
+A secondary effect of all of this is that Vada is fairly easy to read at small font sizes. I'm not saying its a language made for old people, but, well... It's a language made for old eyes.
+
+```vada
+someData: [...!num::dec]
+
+sorted: someData ~> #filter: > 0
+                 ~> #iter: *2 ?> _ * 2 | _ + 4
+                 ~> #sort: >_
+```
+
+### Operators
+
+While you don't need to understand all of the inner details of Vada's expression parsing in order to get the most out of it, knowing the basics can help you understand the overall design.
+
+Vada uses a modified Pratt parsing system for its *entire* expression system. Name-paths, function calls, lists — it's Pratt parsed all the way down, which means we can express operator precedence ***and*** operator associativity through two tables of left-right binding power tuples.
+
+High binding power operators are processed before low binding power operators. Operators with a `(low, high)` pattern are left-associative, while those with a `(high, low)` are right-associative.
+
+With that in mind, here are the main infix operators:
+
+| Op Group                 | Binding Power | Comments                                            |
+| ------------------------ | ------------- | --------------------------------------------------- |
+| `~>`                     | (0, 0)        | Outer Pipe                                          |
+| `, ;`                    | (1, 2)        | Sequence Delineators                                |
+| `=`                      | (3, 4)        | Alias Bind                                          |
+| `&#124; &#124;:`         | (5, 6)        | Disjunction                                         |
+| `&`                      | (7, 8)        | Conjunction                                         |
+| `> >= < <= == !=`        | (9, 10)       | Equality Operators                                  |
+| `+ -`                    | (11, 12)      | Standard Math                                       |
+| `* / ^ %`                | (13, 14)      | Standard Math                                       |
+| `** // ^^ %% !!`         | (13, 14)      | Spicy Math                                          | 
+| `.& .&#124; .^ .~ .< .>` | (15, 16)      | Bitwise Ops                                         |
+| ...                      | ...           | Where the lower unary operators fit in power-wise   |
+| `-> ?>`                  | (19, 20)      | Inner Pipe and If Pipe                              |
+| `.. ..= =..`             | (21, 22)      | Ranges expressions are effectively operands.        |
+| ...                      | ...           | Signs, Inverse, and Transpose prefixes              |
+| `. ::`                   | (∞, ∞)        | Accessors are always the tightest-binding operators  |
+
+The main prefix operators
+
+| Op Group                | Binding Power | Comments          |
+| ----------------------- | ------------- | ----------------- |
+| `> >= < <=`             | (0, 17)       | Value Constraints |
+| `* // ^ `               | (0, 17)       | Value Constraints |
+| `~= !=`                 | (0, 17)       | Composition Constraints|
+| `.. ..=`                | (0, 17)       | Upper Range       |
+| `...`                   | (0, 17)       | Spread Op         |
+| `+ - ~ %`               | (0, 23)       | Signs, Inverse, Transpose |
+
+And the postfix operators:
+
+| Op Group | Binding Power | Comments    |
+| -------- | ------------- | ----------- |
+| `.. =..` | (17, 0)       | Lower Range |
+
+The operators with binding powers lower than the standard arithmetic operators can be thought of as 'clause delineating' operators, while the ones with higher binding powers can be seen as 'operand modifying' operators. It's also worth noting that the different binding powers of the conjunction and disjunction operators allows for disjunctions *of* conjunctions (of arithmetic expressions, etc.), and that the high binding power of the bitwise operators allows for easy ad-hoc flag math — the there's some nuance here that's bloody painful to discuss without mentioning Pratt parsing.
+
+#### Control Flow?
+
+Similar to how Rust's control flow statements are *technically* a sub-expressions (with their own interior grammar), Vada provides control flow through *compositions* involving a general-purpose operators: the if-pipe `?>`.
+
+The if-pipe pushes the left operand to the right operand's implicit, and then yields the right operand if the left is truthy. Combined with a disjunction, it forms a simple ternary expression: `someBool ?> val | fallback`
+
+Where they show real utility, however, is when they're used recursively. An if-pipe expression that yields a list or uniform of if-pipe expressions functions as a multi-match, while a disjunction of if-pipe expressions functions as an `if...else if...` sequence.
+
+Combined with their utility for safe path navigation — `someVar ?> _::memberA ?> _` — and nullability handling, if-pipes are powerful tools.
+
+```vada
+$someEnum: !flag[Red; Green; Blue; Yellow]
+someBool: @false
+
+currState: (someBool == @true) ?> $someEnum::Green | $someEnum::Red
+
+matchVar: 4 + currState ?> (
+              _::Red    ?> 1;
+              _::Green  ?> 2;
+              _::Blue   ?> 3;
+              _::Yellow ?> 4;
+              @null     ?> 0)
+
+eq: matchVar == 6 // @true
+```
+
+<Foldable slug="if-pipe-constructors" hed="...Psst!">
+    If you're wondering what all you can do with a struct of if-pipe expressions, the short answer is 'yes.'
+
+    If-pipes (and sinks) are the magic ingredients that enable the almost-Turing-complete type generation shenanigans that are referenced throughout these docs. They're kinda nuts, but they're also **really** useful when you want to do things like inline re/de-structuring.
+</Foldable>
+
+#### What's With The `a: >3 & *2` Stuff?
+
+**TL;DR**: Vada lets you use a bunch of math operators as constraint operators, if you write them as prefixes instead of infixes.
+
+In most languages, operators such as `>` and `<` are equality operators; they're used to compare two operands and return a Boolean. In Vada, `>` and `<` (and many other operators) can also be used as *constraint* operators[^01-2], which only have one (right-hand) operand and return a limit.
+
+While there's a whole academic conversation that can be had about constraint conjunction and lattice evaluation, the main thing to extract from it is that constraint expressions are like little field-validators, and they can be used to build up types and restrictions on records and schemas without having to write a bunch of boilerplate code.
+
+Is the syntax a little weird? Yes. Is it worth the weirdness? Also yes. Checkout these (somewhat facile) examples:
+
+| Constraint Expression | Description                        | Equality Expression            |
+| --------------------- | ---------------------------------  | ------------------------------ |
+| `*N`                  | Limit to multiples of N            | `Val % N == 0`                 |
+| `/N`                  | Limit to divisors of N             | `N % Val == 0`                 |
+| `>N`                  | Limit to greater than N            | `Val > N`                      |
+| `<N`                  | Limit to less than N               | `Val < N`                      |
+| `M..N`                | Limit to half-open bounds M and N  | `Val >= M && Val < N`          |
+| `A &#124; B &#124; C` | Limit to one of A, B, or C         | `Val == A &#124;&#124; Val == B &#124;&#124; Val == C` |
+| `A & B &#124; A & C`  | Limit to either A and B or A and C | `(Val == A && Val == B) &#124;&#124; (Val == A && Val == C)` |
+
+Vada's constraint syntax is only marginally more compact than traditional equality statements for simple expressions, but it's *significantly* more concise for more complex expressions.
+
+### Sequences and Circumfixes
+
+A sequence expression is composed of series of comma and/or semi-colon delineated sub-expressions. Commas delineate horizontal sequences, while semi-colons delineate vertical sequences.
+
+A circumfix expression is a normal expression wrapped in a pair of enclosing characters that indicate the container primitive it evaluates to. The three primary circumfixes are `()`, `[]`, and `&#123&#125;`, which signify uniforms, lists, and structs, respectively.
+
+An un-enclosed sequence is evaluated as a list by default, and superfluous circumfixes are ignored when the container type of the inner expression is unambiguous, such that `{([[1,2,3]])}` would evaluate the same as `[1,2,3]`[^01-1]. which means you can use all three primary circumfixes the way you'd use parentheses in other languages, so long as the innermost operands are properly enclosed. 
+
+A good way to think of this behavior is that circumfixes constrain, but they don't coerce.
+
+### Literals
+
+Vada has a lot of literals, because there are a lot of ways to represent data.
+
+#### Numeric Literals
+
+Vada allows underscores in all numeric literals. They have no semantic value, however they can be used as visual delineators to improve readability.
+
+| Name            | Example       | Comments |
+| --------------- | ------------- | -------- |
+| Integer Literal | `1`           |          |
+| Decimal Literal | `1.0`         |                           |
+| Binary Literal  | `0b1001_0010` | No inherent length limit. |
+| Hex Literal     | `0xfa_20_22`  |                           |
+
+
+<Foldable slug="numeric-literal-details" hed="The Shiny Numeric Literal">
+
+    Because self-control is a foreign concept for me, Vada has a dynamic-base numeric literal.
+    
+    Here's the regex for it:
+```regex
+([0][2-9]|[1-5][0-9]|6[0-4])a_([a-zA-Z0-9]+[a-zA-Z0-9_]*)(\.[a-zA-Z0-9]+[a-zA-Z0-9_]*)?
+``` 
+    
+    (yes, that's a non-integer arbitrary base literal), the number in the first capture group is interpreted as the base for the number represented second and third capture groups. 
+    
+    such that `02a_0101` is equivalent to `0b0101`, `10a_1000` is equivalent to `1000`, and `36a_5f` is equivalent to `195`, and so on.   
+
+</Foldable>
+
+#### String Literals
+
+Vada keeps strings simple by only using backticks for enclosing characters and by directly plagiarizing Rust's raw string syntax.
+
+| Name                  | Example                 | Comments |
+| --------------------- | ----------------------- | -------- |
+| Escaped String        | `&#96;A String&#96;`    |          |
+| Raw String            | `r#&#96;A String&#96;#` |          |
+
+
+### Keywords
+
+One of the first things folks notice about Vada is that it uses a ton of sigils (leading symbols on variable names), with all four primary sigils showing up in even simple examples:
+
+```vada
+someRecord: @Ext::std::unitTypes::$phys & {
+    name: "Jimbo"
+    classes:
+        [...{name: !str level: !int & >0}]
+        & {"Fighter", 4}, {"Mage", 2}
+    level: classes->#reduce(cls; @sum cls[1]) / classes->#count
+}
+```
+
+Vada uses sigils to limit namespace pollution, optimize code-completion, and ensure expression clarity. Sigils also help users extrapolate from the code in front of them without having to rely on IDE features and make it easier to search the documentation; `@if` and `if` are two very different things.
+
+At first glance sigils can feel like clutter, and concepts like sigil hoisting — shifting a terminal sigil to the start of a section path to get some extra juice out of IDE auto-complete, e.g. `$::std::unitTypes::phys` — and sigil filtering — ending a section path with a bare sigil to import/access the matching subset, e.g. `@import: std::unitTypes::#` — are kinda funky.
+
+Where the semantic value of sigils (and their related access patterns) really starts to shine, however, is when you're working with large archives that have substantial dependency trees and complex schemas.
+
+In those cases, the visual noise is out-weighted by the benefits that come from being able to instantly know reference types without having to rely on IDE features. Sigils add clarity (and let us pull of some neat parsing tricks).
+
+And when you get right down to it, the number of sigils that Vada uses is fairly modest, and what they signify is pretty, well, significant, too.
+
+| Sigil | Role                           | Example                |
+| ----- | ------------------------------ | ---------------------- |
+| `@`   | Keywords and Control Flow      | `@if @else @repr`      |
+| `!`   | Type Primitives and Containers | `!int !flags !list`    |
+| `$`   | User Types/Schemas             | `$someSchema`          |
+| `#`   | Transforms                     | `#filter #map #reduce` |
+
+If it has a leading `@` it's always a noun. If it has a leading `!` it's always a built-in type or container. If it has a leading `$` it's always a user-created schema. If it has a leading `#` it's always a verb. If it doesn't have a sigil, it's just a plain old reference.
+
+#### Important Keywords
+
+The `@` sigil group is fairly large, as it contains a ton of both topological and operational keywords that are frequently used. Here's a brief list of the ones you'll see most commonly:
+
+| Keyword               | Context                  | Description                   |
+| --------------------  | ------------------------ | ----------------------------- |
+| `@Collection`         | File Topology            | Mid-Level namespace           |
+| `@Local`              | Section                  | Private namespace equivalent  |
+| `@Public`             | Section                  | Public namespace equivalent   |
+| `@repr`               | Section                  | Output packing data           |
+| `@Doc::[short, long]` | Universal                | Docstrings                    |
+| `@True, @False`       | Constants                | Boolean Constants             |
+| `@None, @Abstract, @Concrete` | Constants        | Reification Constants         |
+
+The less common keywords are listed in the main docs, but their meanings tend to be easily guessable from the contexts they're used in. They're all noun-ish, they're all consistent.
+
+The other sigiled tokens are covered in the related sections below.
+
+## Pipes and Transforms
+
+Pipes are arrow-shaped binary infix operators — <span class="cb-op">`~> ->`</span> — which pass the left operand into the expression namespace of the right operand by binding its value to the Implicit, a sort of contextual reference that can be accessed via the <span class="cb-kw">`@Implicit`</span> keyword or the idiomatic `_`.
+
+the Outer Pipe `~>` has the lowest binding power among the binary operators, binding whole expressions to whole expressions, while the Inner Pipe <span class="cb-op">`->`</span> has the second-highest binding power (the path operators <span class="cb-op">`.`</span> and <span class="cb-op">`::`</span> have the highest), binding immediate operands to immediate operands. Pipes are used to break long expressions into sequences, to pass data into transforms and lambdas, and as a general tool for structuring expressions[^04-1].
+
+Transforms are Vada's equivalent to functions. Transforms operate upon the Implicit and are parsed as in one of two ways:
+
+1. As an unary prefix, when followed by a colon (low-bind) or a circumfix expression (high-bind).
+2. As an operand (unary transforms).
+
+<Foldable slug="circumfix-refresher" hed="The hell is a Circumfix?">
+    A circumfix expression is an expression wrapped in a pair of enclosing characters, `() [] &#123&#125;`, which signify uniforms, lists, and structs, respectively.
+
+    This means  `#T(...)`,  `#T[...]` and `#T{...}` are all syntactically valid high-bind transforms.
+
+    In all circumfix expressions, superfluous circumfixes are ignored; `{([1,2,3])}` is treated the same as `[1,2,3]`[^04-2], which lets you pass full argument lists as variables without having to worry about whether the right circumfix is used. 
+  
+    Of the three constructions, the columnar list syntax — `#T[arg1; arg2]` — is the most common syntax you'll see for multi-argument transforms.
+</Foldable>
+
+Transforms have equal binding power to the Outer pipe when they are used with a colon — e.g. `... ~> #someTransform: ... ~>` — allowing them to be used without parentheses, but requiring an Outer Pipe to break the expression, and equal binding power to the Inner Pipe when used without a colon.
+
+It might seem strange to have two pipe operators and two ways of calling functions, however this duality ultimately promotes clarity in complex expressions by letting users elide parentheses in a readable and predictable way. Because the binding powers in question bracket the binding powers of the more common operators, the impact they have on precedence is unambiguous and the net result is a cleaner expression syntax.
+
+### Common Transforms
+
+| Uniform Transforms | Description                                                 | Example                                            |
+| ------------------ | ----------------------------------------------------------- | -------------------------------------------------- |
+| `#mag`             | Returns the scalar magnitude of the LHS                     | `(3, 1, 2) ~> #mag  // 3.741`                      |
+| `#normalize`       | Returns unit norm of the LHS                                | `(3, 1, 2) ~> #normalize // (0.802, 0.267, 0.534)` |
+| `#inverse`         | Returns the inverse of the LHS                              | `(3, 1, 2) ~> #inverse // (0.333, 1, 0.5)`         |
+| `#transpose`       | Returns the transpose of the LHS                            | `(3, 1, 2) ~> #transpose // (3; 1; 2)`             |
+| `#sign`            | Returns the signed unit of the LHS                          | `(-3, 1, -2) ~> #sign // (-1, +1, -1)`             |
+| `#cross`           | Returns the cross product of the LHS and RHS                | `(3, 1, 2) ~> #cross (4, -2, 6) // (10, -10, -10)` |
+| `#dot`             | Returns the inner product of the LHS and RHS                | `(3, 1, 2) ~> #dot (4, -2, 6) // 22`               |
+| `#wedgeReal`       | Returns the exterior product (in ℝ) of the LHS and RHS[^04-3] | `(3, 1, 2) ~> #wedge (4, -2, 6) // (-10, 10, 10)`|
+| `#wedgeArb`        | Returns the exterior product of the LHS and RHS             | `(3,1,2) ~> #wedgeArb[(1,0,0; 0,1,0; 0,0,1); (4,-2, 6)] // ...` |
+| `#reshape`         | Returns a member-wise copy of the LHS using the RHS layout  | `(1,2;3,4;5,6) ~> #reshape(3;2) // (1,2,3; 4,5,6)` |
+| `#iter`            | It iterates, you goblin.                             |                                        |
+
+> Don't worry if that last one, `#wedgeArb`, looks confusing; the RHS columnar list is topologically equivalent to the struct `{ basis: (1,0,0; 0,1,0; 0,0,1) operand: (4,-2, 6) }` 
+
+| Struct Transforms    | Description                                               | Example                                              |
+| -------------------- | --------------------------------------------------------- | ---------------------------------------------------- |
+| `#open`              | Creates an open copy of the LHS struct                    | `SomeRec: {a:1 b:2}~>#open`                          |
+| `#fork`              | Copies the LHS struct, with overrides from the RHS struct | `$SomeSch: $SchA~>#fork{a?: !string } `              |
+| `#valueList`         | Creates a list containing the LHS struct's field values   | `{a:1, b:2, c:"word"}~>#valueList // [1, 2, "word"]` |
+| `#nameList`          | Creates a list containing the LHS struct's field names    | `{a:1, b:2, c:"word"}~>#nameList // ['a', 'b', 'c']` |
+
+> `#fork` and `#open` are incredibly powerful transforms for "resetting" structs and schemas passed down from parent modules. The downsides to abusing them are obvious. Discipline is suggested.
+
+| List Transforms           | Description                                              | Example                                |
+| ------------------------- | -------------------------------------------------------- | -------------------------------------- |
+| `#iter`                   | It iterates, you goblin.                                 |                                        |
+| `#filter`                 | Filter elements from LHS that don't match RHS constraint | `[1,2,3,4,5,6] ~> #filter: _ % 2 == 0` |
+| `#reduce`                 | Sums LHS with RHS expression                             | `[100, 50, 25] ~> #reduce:           ` |
+| `#reshape`                | Returns a copy of the LHS arranged with the RHS expr     | `[1,2;3,4;5,6] ~> #reshape:          ` | 
+
+> `#reduce` is roughly comparable to an ad-hoc `!sink`, in that it offers all of the same options in terms of striding the data and shaping the output.
+
+### Transforms, Side-Effects, and You
+
+You can technically use <span class="cb-kw">`@Local`</span> and some schema polymorphism, combined with smartly designed sinks, to model side-effect-like behaviors. But doing that requires you to rebuild simple fields as sinks and feed them using factory schemas that produce intermediary schemas which function as algebraic data types.
+
+You can even go so far as to expose a top-level state as a sink that's propagated downwards via the Implicit and then use topological weighting to effectively scope write access. But at that point you'd have an distributed state tree so goddamned glorious that you could probably get grant funding for it.
+
+And it technically wouldn't produce side effects, just side-effect-like behavior, because you're technically feeding that top sink with non-reified values and modeling behavior branches on partial collapse-reductions of the top sink's contents via the n-ary sinks you recursively ascend through on eval.
+
+So, yes, you can have side effects if you want to one-shot your way to a tenure track position at a university somewhere.
+
+## Field Expressions (Captures)
+
+In unreified structs, field names can be defined through generative captures.
+
+[^01-1]: You can also use those operators in equality statements; Vada is smart enough to interpret them as infix operators when there's a left operand present.
+
+[^01-2]: In addition to unwrapping to the lowest circumfix, Vada also lowers anonymous structs to columnar lists, as they're topologically comparable under the hood. Conversely, it **doesn't** lower lists to uniforms, as doing that willy-nilly is computationally intensive at-scale.
+
+[^01-3]: Syntactically speaking, You can pipe anything into anything. But it's only useful if the right hand side operates on the Implicit in some way (or you want to discard the left hand side). It's hard to enumerate the specific uses of pipes beyond that but, in general, they're powerful sequence-controlling operators that you'll abuse the hell out of once you're comfortable with Vada's idioms. The most common pipe-abuse you'll see (and use) is piping into alias statements in order to bind intermediary variables for inner expressions.
+
+[^01-4]: In addition to unwrapping to the lowest circumfix, Vada also lowers anonymous structs to columnar lists, as they're topologically comparable under the hood. Conversely, it **doesn't** lower lists to uniforms, as doing that willy-nilly is computationally intensive at-scale.
+
+[^01-5]: Having a dedicated transform for wedge products in ℝ lets us do some under-the-hood optimizations, skipping the need to allocate a matrix just to extract a vector from it. TL;DR? This exists to speed up rotor/quaternion calculations.
+

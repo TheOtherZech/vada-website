@@ -1,0 +1,30 @@
+---
+title: Website Tech
+---
+
+# About The Website
+
+Look, I am in *no* sense a "proper" web developer. This website is a pile of jank slapped together without a coherent plan. You don't want to abuse this tech stack the way I'm abusing this tech stack.
+
+- The Framework: [SvelteKit](https://kit.svelte.dev/)
+    - Markdown Handling: [mdsvex](https://mdsvex.pngwn.io/)
+    - Code Block Formatting: [shiki](https://shiki.matsu.io/)
+    - Icons: [Hero Icons](https://heroicons.com/) via [svicons](https://github.com/janosh/svicons)
+    - Code Editing: [Monaco Editor](https://microsoft.github.io/monaco-editor/) (in future updates)
+    - Graphs: [pancake](https://github.com/Rich-Harris/pancake)
+- The Fonts:
+    - [Inter](https://rsms.me/inter/)
+    - [Fira Code](https://github.com/tonsky/FiraCode)
+- The Backend
+  - Routing: Caddy
+  - Hosting: DigitalOcean
+
+## How mdsvex setup work?
+
+I'm abusing Vite to bulk-import the svelte components that mdsvex generates in order to aggregate markdown files into single-page collections. It's hacky, it requires layout-like stub pages for each collection (which means duplicate code), and it isn't set up to recurse through sub-directories.
+
+## Cookies and Privacy Stuff
+
+**TL;DR:** I don't like web development enough to spend time implementing analytics. This is a documentation site for a project that hasn't shipped an alpha yet. I don't have enough braincells to figure out GDPR compliance, nor let alone do meaningful things with the data I'm not collecting.
+
+<!-- I have zero clue what Monaco does when it comes to data privacy. The docs don't say anything about it, but that probably doesn't mean much. -->

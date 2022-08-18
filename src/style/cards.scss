@@ -1,0 +1,71 @@
+.card {
+    background-color: unset;
+    padding: 0px;
+    margin: 32px;
+    overflow: hidden;
+    // outline: 1px solid #f5f568FF;
+    outline-offset: -1px;
+    box-shadow: 0px 0px 32px 0px black;
+}
+
+
+.caution {
+    background-color: unset;
+    padding: 0px;
+    margin: 32px;
+    overflow: hidden;
+    outline: 1px solid #f5f568FF;
+    outline-offset: -1px;
+    box-shadow: 0px 0px 32px 0px black;
+    border-left: none !important;
+    .hed {
+        display: block;
+        content: '';
+        background-image: repeating-linear-gradient(
+            -45deg,
+            black,
+            black 10px,
+            #f5f568 10px,
+            #f5f568 20px
+        );
+        overflow: hidden;
+        min-height: 12px;
+        button {
+            // height: 20px;
+            span {
+                padding: 32px 0px;
+                min-width: 25%;
+                text-align: center;
+                box-sizing: border-box;
+                // margin: 32px;
+                background-color: black;
+                color: #f5f568;
+                h4 {
+                    font-family: "Fira Code", serif !important;
+                }
+                
+            }
+        }
+    }
+
+    .hed:before {
+        border-color: transparent transparent transparent transparent !important;  
+    }
+
+    .inner{
+        background-color: #f5f568;
+        font-weight: 800;
+        color: black;
+        padding: 24px;
+
+        p {
+            font-weight: 800;
+
+            strong {
+                font-variant: small-caps;
+            }
+        }
+    }
+
+
+}

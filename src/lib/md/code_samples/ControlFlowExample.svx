@@ -1,0 +1,14 @@
+---
+title: Control Flow Example
+---
+
+```vada
+// TODO: Update this
+$boundFac: !dec::float(@prec: 4) & 0..=1
+$someFlag: !flagset: 
+    @repr !int32;
+    red    = 2 .> 0,
+    green  = 2 .> 1,
+    yellow = 2 .> 2,
+    blue   = 2 .> 3,
+```

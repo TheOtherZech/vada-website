@@ -1,0 +1,55 @@
+---
+title: Language Technology
+---
+
+# About the Language
+
+VADA's canonical implementation is written in Rust and leverages a bunch of crates created by smart people who write good code (many of which are used by Rust-Analyzer). 
+
+Blame them for the good parts of the canonical implementation. Blame me for the bad ones.
+
+- Lexer: Logos
+- Parser: Rowan
+- Incremental Compute Framework: Salsa
+
+## Can I Contribute to It?
+
+This project needs some polishing before its opened up for multiplayer.
+
+Yes, it's a serious project that I intend to ship. Yes, there is a long-term plan for managing it as a "proper" open source project. No, I am not organized enough to manage all of that while I'm in the bootstrap-y experimental phase.
+
+We'll get there.
+
+## Can I Financially Support It?
+
+If you throw money at VADA right now, I'm going to spend it on frivolous things like food and rent.
+
+## Boring Questions People Ask For Some Reason
+
+These answers are here, in the ass end of the about page, because the answers are genuinely irrelevant. Please stop asking them.
+
+#### How do I Pronounce Vada?
+- The most-correct pronunciation is goʊ fʌk jərˈsɛlf. 
+- If you can't pull that off, shoot for two syllables and play the rest by ear.
+
+#### What does Vada mean?
+- [It's Food.](https://en.wikipedia.org/wiki/Vada_\(food\)) Delicious food. It is the ideal food to bring me as a peace offering. Bring me savory doughnuts.
+
+#### Can I be an alpha tester?
+- Maybe. Eventually. But only if you're in a position to onboard yourself.
+
+#### Will you help me integrate Vada into my project so I can be an alpha tester?
+- If you're an indie dev who has never shipped a financially successful project, Vada won't help you get a game out the door. It's an experimental language. Learning Vada won't remove your roadblocks. Talk less ship more.
+  - Also, I don't like you enough as a person to help you. 
+    - I haven't even met you.
+    - Please stop asking for general game development help. 
+
+#### Why did you [insert decision here]?
+- Because brain juice is a non-renewable resource and I try to operate on as few brain cells as possible in order to preserve my limited supply.
+- Because Vada is still in its the experimental phase and [insert decision here] was the first thing that came to mind while working on [insert feature here].
+- Because I hate you.
+
+#### When will Vada support be added to Unity/&#8203;Unreal/&#8203;Blender/&#8203;Pornhub/&#8203;Excel/&#8203;FastAPI/&#8203;Kubernetes/&#8203;CS:GO/&#8203;Eurotruck&nbsp;Simulator/&#8203;GameMaker/&#8203;VROID/My&nbsp;Tax&nbsp;Returns/&#8203;Vercel/&#8203;Dragonfly/&#8203;CryEngine/&#8203;Skyrim/&#8203;SQLite/&#8203;Etc?
+- Look, I'm not in a position to wag the dog like that. I won't even _dream_ of application-specific integrations before I've shipped the Rust crate, and that won't happen in [current year].
+  
+> Please don't make me add more questions.

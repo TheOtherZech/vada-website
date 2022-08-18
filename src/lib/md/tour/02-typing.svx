@@ -1,0 +1,348 @@
+---
+title: Typing
+---
+
+<script>
+    import Foldable from '$lib/Foldable.svelte';
+    // import FolderTree from "$lib/FolderTree.svelte";
+</script>
+
+# Data Types
+
+Vada's overall type system is composition-like, both in the sense that the conjunction of constraints is comparable to class composition and in the sense that any one 'type' can be broken down into a composite of primitives, containers, and constraint expressions (and @repr configs).
+
+This means that Vada's list of built-in types (primitives + containers) is short and simple, and that the ***consequential interactions*** of those types is a gigantic wibbly ball of set theory that's hard to grok without hands-on experience.
+
+## Primitives
+
+Primitives are relatively simple: they're what you typically think of when discussing types. Strings, integers, decimal numbers, Booleans — Vada's list of primitives is short, as most of the complexity comes from the layers built on top of them.
+
+| Primitive | Subtypes                | Description |
+| --------- | ----------------------- | ----------- |
+| `!str`    | `simple, slug, disp`    | UTF-8, with lots of magic.             |
+| `!num`    | `int, dec`              | Signs, precision, etc., are constraints |
+| `!flag`   | `set, exclusive`        | All the bitvec fun. With recursion.    |
+| `!raw`    | `char, byte, arb`       | Arbitrarily sized raw bit sequences.   |
+| `!bool`   |                         | It's a fucking bool.                   |
+
+
+### String Primitives
+
+Vada's strings are complicated, but in a good way.
+
+### Numeric Primitives
+
+### Flag Primitives
+
+The `!flag` primitive is a generalization of C-style enums that can be used in both bitwise and set operations, with the additional enhancements for hierarchical sets. 
+
+Vada's flags are specifically designed to fulfill the role that bitvec-like flag sets do in game engines.
+
+```vada
+$someFlagset: !flag <~ {
+    red,
+    // flags can be left open, allowing for downstream customization 
+    green: {...},
+    blue: {
+        cyan,
+        turquoise,
+        royal
+    }
+}
+```
+
+### Raw Primitives
+
+Raw primitives are primarily used for two things:
+
+1. Output encoding
+2. Hackery
+
+## Containers
+
+Vada treats containers as multi-dimensional by default, wherein scalar containers are simply one-by-one matrices.
+
+This makes Vada particularly handy for the sorts of linear algebra data mashing that is common in game development, but it means that container configuration can be a bit hard to grok without context. 
+
+| Container | Description                                         | Use Case                                  |
+| --------- | --------------------------------------------------- | ------------------------------------------|
+| `!uniform`| Fixed Multi-Dimensional, Single Primitive           | Scalars, Vectors, Matrices, Rotors, Etc.  |
+| `!list`   | Dynamic Multi-Dimensional, Multi-Primitive          | Arrays, Tuples, Complex Numbers, Etc.     |  
+| `!struct` | Dynamic Hierarchical, Multi-Primitive, Named Members| Yes                                       |
+| `!sink`   | Idempotent Delayed-Eval Accumulators                | Monads, Type Factories, Fuzzy State, Etc. |
+
+In short, the `!uniform` container is for everything that is, well, uniform. Scalars are uniform because they're scalar. The only difference between a scalar, a vector, and a matrix is the number of members to which the uniformity applies.
+
+Meanwhile, the `!list` container is specifically built for, well, list iteration, and the `!struct` container is built for semantically structured and hierarchical data.
+
+### Uniform Containers
+
+We explored some of the coolness of uniforms up in the [Core Concepts](#first-class-spatial-data) section, but the focus there was primarily on uniform numeric literals rather than the uniform container itself.
+
+The uniform container is Vada's atomic container.
+
+TODO: Expand
+
+### List Containers
+
+A list is a struct with anonymous members. That's the long and short of it.
+
+Take a look at this struct:
+
+```vada
+someStruct: {
+    name: "jim"
+    age: 21
+    hobbies: [
+        { name: "stamp collecting", experience: 4 },
+        { name: "kyaking", experience: 2 },
+        ...
+    ]
+    stats: {
+        strength: 4
+        agility: 6
+        intelligence: 3
+        luck: 8
+        charm: 1
+    }
+}
+```
+
+If we were to access it as a list with `::@values`, recursively flattening the member values into rows, we'd get:
+
+```vada
+someList: [ 
+    "jim";
+    21;
+    [ ["stamp collecting"; 4], ["kyaking"; 2], ... ];
+    [4; 6; 3; 8; 1]
+]
+```
+
+And if we were to extract a schema from that list with `#asAbstract`, we'd get:
+
+```vada
+$someTopology: [
+    !string;
+    !num::int;
+    [ [!string; !num::int], ... ];
+    [!num::int, !num::int, !num::int, !num::int, !num::int]
+]
+```
+
+Which we could then use as an anonymous constraint for other structs, whereby `otherStruct::@values & $someTopology` would constrain `otherStruct`'s members purely by position.
+
+<Foldable slug="list-constraint-detail" hed="...Psst!">
+
+You can also do `someStruct::@fields & otherStruct::@fields` to perform a name constraint without creating a duplicate struct full of `someField: @any` constraints. 
+</Foldable>
+
+This topological equivalence is both an inherent side-effect of Vada's design *and* an intentional feature of lists. Lists are iterable, filterable, bulk-constrainable jagged arrays. They lack the any-axis slicing of uniforms, and they aren't as ergonomic as structs for topologically complex records, but the position they occupy as the middle-point between those two containers makes them incredibly useful.
+
+#### Constraining Lists
+
+The main bit of magic for constraining lists is the sequence prefix, `...`.
+
+`...` functions similarly to JavaScript's spread operator, flattening the prefixed operand into the outer container. Where it gets fancy is the ways in which you can do math with sequences:
+
+```vada
+// Concrete Spreads
+simpleSpread:      [ ...[1, 2, 3], ...[4, 5, 6] ]  // [1, 2, 3, 4, 5, 6]
+repeatedSpread:    [ ...[1, 2, 3] * 2 ]            // [1, 2, 3, 1, 2, 3]
+interleavedSpread: [ ...[1, 2, 3] + ...[4, 5, 6] ] // [1, 4, 2, 5, 3, 6]
+
+// Abstract Spreads
+abstractRepeat: ...!num * 5    // [!num, !num, !num, !num, !num]
+abstractRange:  ...!num & 1..4 // [!num] | [!num, !num] | [!num, !num, !num]
+
+// Fancy
+CombinedSpreads: [...!num & 0..6, ...!string & 0..6] & 1..8      // 0-5 numbers, 0-5 strings, for a minimum of 1 and a maximum of 8 items.
+DisjunctSpreads: [ ...(!num & 0..) * 5 | ...(!num & ..0) & 1..6] // Either 5 numbers greater than zero or 1-5 numbers less than zero.
+```
+
+Vada goes hard on list constraints. This is just the tip of the iceberg.
+
+### Struct Containers
+
+If you manage to create a substantial Vada archive that _isn't_ primarily composed of structs, you're probably doing something weird.
+
+#### What the hell is a Section?
+
+A Section is a semantically distinct sub-group of a struct's members. Sections are used to organize fields, apply multi-field constraints, create multi-field captures, and create semantic access patterns. Sections are, simply put, magical.
+
+```vada
+$characterInfo: {
+    // Fields in the @local inherent can't be externally referenced
+    --- @local {
+        isBoring: !bool & @default -> @true
+    }
+
+    // Simple sections don't need circumfixes. They simply enclose
+    // the fields that follow them, up until the next section declaration. 
+    --- info
+    name: !string & != ""
+    age: !num & 0..
+    background: !string
+
+    // if you want to nest sections, however, you should use a circumfix
+    --- classInfo {
+        --- combat
+        classes: [...{name: !string & != "" level: !num::int & 0..21}]  
+        powerLevel: !num::int
+        combatTitles: [...!string & != ""]
+        
+        -- secondary
+        jobs: classes: [...{name: !string & != "" level: !num::int & 0..51}]
+        jobTitles: [...!string & != ""]
+    }
+
+    // You can bulk-constrain sections.
+    // When you bulk-constrain, the right side of the outermost
+    // pipe expression is treated as the section body.
+    --- attributes: !num::int ~> [
+        strength,
+        endurance,
+        agility,
+        courage
+    ]
+
+    // You can further constrain the section body to control
+    // the number of fields, create field-set disjunctions, etc.
+    --- skills: {
+        name: !string
+        level: !num::int
+        } ~> [...] & 0..11
+
+    // $["meta_\w*"] is a regex-based field name capture, which
+    // lets you do fancy organizational things with open structs.
+    --- metaData: $["meta_\w*"] & !string ~> {
+        ...
+    }
+
+    // Anonymous sections can be used to create semi-open structs,
+    // applying constraints to any additional fields that are added.
+    --- !string ~> [...]
+}
+```
+
+#### Open Structs vs Closed Structs
+
+Magic.
+
+### What the Hell is a Sink?
+
+A Sink is an algebraic container that encapsulates an accumulator (read: a write-only open list) which is transformed when the sink is evaluated (read: unwrapped). 
+
+The inputs into a sink's accumulator and the output of a sink's evaluation transform are constrained separately, allowing sinks to function as both enums (in the Rust-y sense) and as vaguely cursed not-monads.
+
+Understanding all of the shenanigans you can pull with sinks takes time, but you can use them as algebraic data types and super-disjunctions without diving into the funky bits.
+
+#### Multi-Sinks
+
+Most of the sinks you'll create will have multi-dimensional accumulators,
+
+```vada
+$someSink: !sink <~ {
+    @accumulator: {
+        fieldA: [!number, ...]
+        fieldB: [!number, ...]
+        fieldC: [!number, ...]
+    }
+    @out: fieldA->#sum + fieldB->#sum * fieldC->#mean
+}
+```
+
+### Structs
+
+Structs are the bread and butter of most Vada archives.
+
+
+
+`someList: [ "jim"; 21; [["stamp collecting"; 4], ["kyaking"; 2]] ]`
+
+are topologically equivalent.
+
+## Schemas
+
+Schemas are magical and sigil-worthy due to the fact that you can pipe values into them (like transforms) and use the values passed via the Implicit to parameterize the constraints of the resultant record, allowing an expressive form of polymorphism that is constraint-friendly without requiring an exhaustive enumeration of sub-types.
+
+Notably, schemas can be initialized by left-piping the initialization value, like so:
+```vada
+$someSchema<~{initArgs:...} & {fields:...}
+```
+Which can help to maintain clarity in large expressions by keeping the sigiled schema name at the left of the sub-expression, emphasizes the fact that schemas are sink-like in how they consume their init values, and makes it easier to auto-complete the topology of the init struct.
+
+Schemas can, of course, be initialized via the typical right-piping, as well, however using a left-pipe is the idiomatic approach.
+
+### Schemas + Sinks = Dynamic Type Generation
+
+A sink schema that produces sink schemas, using recursion to incrementally refine intermediate schemas until a concrete record is produced (which can then still consume more inputs through its accumulator and optionally de-reify back to a schema on eval) can be pretty damn close to Turing complete.
+
+Can a combination of sinks and schemas be used to create type generation tools that let you scaffold out large archives based on a sample dataset and a handful of smart declarations? Yes. Does the utility of the above make the combo any less cursed? No.
+
+With great power comes great responsibility.
+
+### Unit vs Non-Unit Numeric Schemas
+
+Numeric constraints don't prevent you from doing math with differently-constrained operands; as long as the primitives are compatible, it works. And since Vada doesn't have floats at the eval stage — you can _output_ floats, but the actual math is deterministic — it means that you can do math with just about any combination of numerics you can think of.
+
+Which is where Units come in.
+
+All numerics are technically `[!num, !flagset]` tuples
+
+```vada
+$metricLengthFlags: !flagset <~ [ mm, cm, dm, m, dam, km ]
+$USCLengthFlags:    !flagset <~ [ in, ft, yd, mi ]
+
+!num::unitGroup::metric <~ {
+    // This pulls $metricLengthFlags into the local namespace for easy reference
+    @flags: $metricLengthFlags
+
+    // Sets the 1-scale unit
+    @baseUnit: m
+
+    // Determines the family's relation to the base unit.
+    // Intermediate relations are automatically calculated and cached.
+    @baseScale: (
+        mm  ?> *0.001;
+        cm  ?> *0.01;
+        dm  ?> *0.1;
+        m   ?> *1; 
+        dam ?> *10;
+        km  ?> *1000
+    )
+
+    // Conversions for other unit groups. 
+    // These external equivalencies require explicit units.
+    @equiv: 
+        !num::unitGroup::USC ?> (
+            in ?> 2.54::cm;
+            ft ?> 0.3048::m;
+            yd ?> 0.9144::m;
+            mi ?> 1.609344::km | 1609.344::m
+        )
+}
+
+!num::unitGroup::USC <~ {
+    @flags: $USCLengthFlags
+    @baseUnit: in
+
+    @baseScale: (
+        in ?> *1;
+        ft ?> *12;
+        yd ?> *3;
+        mi ?> *5280
+    )
+
+    @equiv: 
+        !num::unitGroup::metric ?> (
+            mm  ?>  0.039370::in;
+            cm  ?>  0.39370::in;
+            dm  ?>  3.9370::in;
+            m   ?> 39.370::in | 3.2808::ft;
+            dam ?> 32.808::ft;
+            km  ?>  0.62137::mi | 1093.6::yd | 3280.8::ft;
+        )
+}
+```
+

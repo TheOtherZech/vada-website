@@ -1,0 +1,34 @@
+---
+title: Front Page Simple Code Block
+---
+```vada
+@module: PersonData
+
+--- @Imports:
+@std::util::$.[$utilSchema]
+
+--- @Local:
+$edType: "None" | "Highschool" | "Undergraduate" | "Graduate"
+$desc_string: !str & != ""
+
+--- @Public:
+$personSchema: $utilSchema & {
+    @Doc::short: "A basic structure for person data"
+    --- Basic:
+    name: $desc_string
+    age: !int & > 0
+    address: @Local::$addrStruct | @None // Words!
+
+    --- Experience:
+    employer: (!str & != "") | @None
+    education: [($edType, $desc_string), ...]
+    certs: [!str & != "", ...] | @None
+
+    #score: certs->#reduce(@sum)
+        + education->#reduce: + _ ?>
+            "None" ?> 0;
+            "Highschool" ?> 1;
+            "Undergraduate" ?> 4;
+            "Graduate" ?> 6
+}
+```
